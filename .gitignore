@@ -1,35 +1,75 @@
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Build outputs
-dist/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
-*.log
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Environment files
+# PyInstaller
+*.manifest
+*.spec
+
+# Environments
 .env
-.env.*
-!.env.example
+.env.local
+*.env.local
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# IDE files
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Temporary files
-*.tmp
-*.temp
-.cache/
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
-# Sensitive files (auto-detected)
-build
-dist
+# Logs
+*.log
 
+# Backup files
+*.bak
+*.backup
+
+# Sensitive files
+config.env
+.license.dat
+trial.json
+
+# Node
+node_modules/
+.next/
+
+# Installers
+*.exe
+
+# Kiro
+.kiro/
