@@ -9,6 +9,7 @@ COPY . .
 
 ENV NEXT_PUBLIC_API_URL=https://controle-financeiro-wd04.onrender.com/api/v1
 
+RUN mkdir -p public
 RUN npm run build
 
 FROM node:18-alpine AS runner
@@ -20,7 +21,7 @@ ENV PORT=3000
 
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public 2>/dev/null || true
+COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
