@@ -8,7 +8,15 @@ const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/bancos", label: "Bancos" },
   { href: "/categorias", label: "Categorias" },
-  { href: "/lancamentos/despesas", label: "Lançamentos" },
+  {
+    label: "Lançamentos",
+    href: "/lancamentos",
+    children: [
+      { href: "/lancamentos/despesas", label: "Despesas" },
+      { href: "/lancamentos/receitas", label: "Receitas" },
+      { href: "/lancamentos/transferencias", label: "Transferências" },
+    ],
+  },
   { href: "/cartoes", label: "Cartões" },
   { href: "/investimentos", label: "Investimentos" },
   { href: "/frota", label: "Frota" },
@@ -67,20 +75,42 @@ export default function Sidebar() {
           </button>
         </div>
         <nav className="flex flex-col p-2 gap-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className={`px-4 py-2.5 rounded-lg text-sm transition-colors ${
-                isActive(link.href)
-                  ? "bg-accent/10 text-accent border-l-2 border-accent"
-                  : "text-foreground hover:bg-surface-hover hover:text-accent"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) =>
+            link.children ? (
+              <div key={link.href}>
+                <span className="px-4 py-2 text-xs font-semibold uppercase text-muted tracking-wider">
+                  {link.label}
+                </span>
+                {link.children.map((child) => (
+                  <Link
+                    key={child.href}
+                    href={child.href}
+                    onClick={() => setOpen(false)}
+                    className={`pl-8 pr-4 py-2 rounded-lg text-sm transition-colors ${
+                      isActive(child.href)
+                        ? "bg-accent/10 text-accent border-l-2 border-accent"
+                        : "text-foreground hover:bg-surface-hover hover:text-accent"
+                    }`}
+                  >
+                    {child.label}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className={`px-4 py-2.5 rounded-lg text-sm transition-colors ${
+                  isActive(link.href)
+                    ? "bg-accent/10 text-accent border-l-2 border-accent"
+                    : "text-foreground hover:bg-surface-hover hover:text-accent"
+                }`}
+              >
+                {link.label}
+              </Link>
+            )
+          )}
         </nav>
       </aside>
     </div>
