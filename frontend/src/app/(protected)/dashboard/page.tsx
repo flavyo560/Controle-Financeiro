@@ -46,6 +46,26 @@ export default function DashboardPage() {
     );
   }
 
+  // Adaptar formato do backend
+  const alertas = dashboard?.alertas ?? [];
+  const vencidas = alertas.filter((a: Record<string, unknown>) => a.tipo === "vencida");
+  const vencendo = alertas.filter((a: Record<string, unknown>) => a.tipo === "vencendo");
+
+  // Adaptar despesas por categoria (backend retorna { categorias: [...] })
+  const pieData = (despesasCat as unknown as { categorias?: { categoria_nome: string; valor: number; percentual: number }[] })?.categorias?.map(
+    (c) => ({ categoria: c.categoria_nome, valor: Number(c.valor), percentual: Number(c.percentual) })
+  ) ?? [];
+
+  // Adaptar evolução mensal (backend retorna { meses: [...] })
+  const barData = (evolucao as unknown as { meses?: { mes: number; receitas: number; despesas: number }[] })?.meses?.map(
+    (m) => ({
+      mes: meses.find((x) => x.value === m.mes)?.label ?? String(m.mes),
+      receitas: Number(m.receitas),
+      despesas: Number(m.despesas),
+      saldo: Number(m.receitas) - Number(m.despesas),
+    })
+  ) ?? [];
+
   return (
     <div className="space-y-6 mt-4">
       {/* Filtros */}
@@ -68,17 +88,17 @@ export default function DashboardPage() {
       <Card className="bg-accent/5 border-accent/20">
         <p className="text-sm text-muted">Patrimônio Total</p>
         <p className="text-2xl font-bold text-accent">
-          {formatCurrency(dashboard?.patrimonio_total ?? 0)}
+          {formatCurrency(Number(dashboard?.patrimonio ?? 0))}
         </p>
       </Card>
 
       {/* Saldos por Banco */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {dashboard?.saldos_bancos?.map((item) => (
-          <Card key={item.banco.id}>
-            <p className="text-sm text-muted">{item.banco.nome}</p>
-            <p className={`text-lg font-semibold ${item.saldo >= 0 ? "text-accent" : "text-danger"}`}>
-              {formatCurrency(item.saldo)}
+        {dashboard?.saldos_bancos?.map((item: { banco_id?: number; nome?: string; saldo: number }) => (
+          <Card key={item.banco_id ?? item.nome}>
+            <p className="text-sm text-muted">{item.nome ?? "Banco"}</p>
+            <p className={`text-lg font-semibold ${Number(item.saldo) >= 0 ? "text-accent" : "text-danger"}`}>
+              {formatCurrency(Number(item.saldo))}
             </p>
           </Card>
         ))}
@@ -89,19 +109,19 @@ export default function DashboardPage() {
         <Card>
           <p className="text-sm text-muted">Receitas</p>
           <p className="text-lg font-semibold text-accent">
-            {formatCurrency(dashboard?.resumo_mensal?.total_receitas ?? 0)}
+            {formatCurrency(Number(dashboard?.resumo_mensal?.total_receitas ?? 0))}
           </p>
         </Card>
         <Card>
           <p className="text-sm text-muted">Despesas</p>
           <p className="text-lg font-semibold text-danger">
-            {formatCurrency(dashboard?.resumo_mensal?.total_despesas ?? 0)}
+            {formatCurrency(Number(dashboard?.resumo_mensal?.total_despesas ?? 0))}
           </p>
         </Card>
         <Card>
           <p className="text-sm text-muted">Saldo do Mês</p>
-          <p className={`text-lg font-semibold ${(dashboard?.resumo_mensal?.saldo ?? 0) >= 0 ? "text-accent" : "text-danger"}`}>
-            {formatCurrency(dashboard?.resumo_mensal?.saldo ?? 0)}
+          <p className={`text-lg font-semibold ${Number(dashboard?.resumo_mensal?.saldo ?? 0) >= 0 ? "text-accent" : "text-danger"}`}>
+            {formatCurrency(Number(dashboard?.resumo_mensal?.saldo ?? 0))}
           </p>
         </Card>
       </div>
@@ -109,58 +129,54 @@ export default function DashboardPage() {
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card title="Despesas por Categoria">
-          <PieChart data={despesasCat ?? []} />
+          <PieChart data={pieData} />
         </Card>
         <Card title="Evolução Mensal">
-          <BarChart data={evolucao ?? []} />
+          <BarChart data={barData} />
         </Card>
       </div>
 
       {/* Alertas */}
-      {dashboard?.alertas && (
-        <div className="space-y-4">
-          {dashboard.alertas.despesas_vencidas.length > 0 && (
-            <Card title="Despesas Vencidas" className="border-danger/30">
-              <div className="space-y-2">
-                {dashboard.alertas.despesas_vencidas.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between py-1">
-                    <div>
-                      <span className="text-foreground">{d.descricao || "Sem descrição"}</span>
-                      {d.data_vencimento && (
-                        <span className="text-xs text-muted ml-2">Venc: {formatDate(d.data_vencimento)}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-danger font-medium">{formatCurrency(d.valor)}</span>
-                      <Badge variant="danger">Vencida</Badge>
-                    </div>
-                  </div>
-                ))}
+      {vencidas.length > 0 && (
+        <Card title="Despesas Vencidas" className="border-danger/30">
+          <div className="space-y-2">
+            {vencidas.map((d: Record<string, unknown>) => (
+              <div key={d.despesa_id as number} className="flex items-center justify-between py-1">
+                <div>
+                  <span className="text-foreground">{(d.descricao as string) || "Sem descrição"}</span>
+                  {d.data_vencimento && (
+                    <span className="text-xs text-muted ml-2">Venc: {formatDate(d.data_vencimento as string)}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-danger font-medium">{formatCurrency(Number(d.valor))}</span>
+                  <Badge variant="danger">Vencida</Badge>
+                </div>
               </div>
-            </Card>
-          )}
+            ))}
+          </div>
+        </Card>
+      )}
 
-          {dashboard.alertas.despesas_vencendo.length > 0 && (
-            <Card title="Despesas Vencendo no Mês" className="border-warning/30">
-              <div className="space-y-2">
-                {dashboard.alertas.despesas_vencendo.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between py-1">
-                    <div>
-                      <span className="text-foreground">{d.descricao || "Sem descrição"}</span>
-                      {d.data_vencimento && (
-                        <span className="text-xs text-muted ml-2">Venc: {formatDate(d.data_vencimento)}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-warning font-medium">{formatCurrency(d.valor)}</span>
-                      <Badge variant="warning">Vencendo</Badge>
-                    </div>
-                  </div>
-                ))}
+      {vencendo.length > 0 && (
+        <Card title="Despesas Vencendo no Mês" className="border-warning/30">
+          <div className="space-y-2">
+            {vencendo.map((d: Record<string, unknown>) => (
+              <div key={d.despesa_id as number} className="flex items-center justify-between py-1">
+                <div>
+                  <span className="text-foreground">{(d.descricao as string) || "Sem descrição"}</span>
+                  {d.data_vencimento && (
+                    <span className="text-xs text-muted ml-2">Venc: {formatDate(d.data_vencimento as string)}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-warning font-medium">{formatCurrency(Number(d.valor))}</span>
+                  <Badge variant="warning">Vencendo</Badge>
+                </div>
               </div>
-            </Card>
-          )}
-        </div>
+            ))}
+          </div>
+        </Card>
       )}
     </div>
   );
