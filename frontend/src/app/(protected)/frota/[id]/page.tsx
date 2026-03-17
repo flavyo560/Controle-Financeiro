@@ -177,17 +177,18 @@ export default function VeiculoDetalhePage() {
       <Modal open={abastModal} onClose={() => setAbastModal(false)} title="Novo Abastecimento">
         <form onSubmit={handleCreateAbast} className="space-y-4">
           <Input label="Data" type="date" value={abastData} onChange={(e) => setAbastData(e.target.value)} required />
-          <Input label="Litros" type="number" step="0.01" value={abastLitros} onChange={(e) => setAbastLitros(e.target.value)} />
-          <Input label="Valor (R$)" type="number" step="0.01" value={abastValor} onChange={(e) => setAbastValor(e.target.value)} required />
-          <Input label="Km" type="number" value={abastKm} onChange={(e) => setAbastKm(e.target.value)} />
-          <Input label="Posto" value={abastPosto} onChange={(e) => setAbastPosto(e.target.value)} />
           <Select label="Tipo de Combustível" options={tipoCombustivelOptions} value={abastTipo} onChange={(e) => setAbastTipo(e.target.value)} />
-          {abastTipo === "Mistura" && (
+          {abastTipo === "Mistura" ? (
             <>
               <Input label="Litros de Gasolina" type="number" step="0.01" value={abastLitrosGasolina} onChange={(e) => setAbastLitrosGasolina(e.target.value)} />
               <Input label="Litros de Álcool (Etanol)" type="number" step="0.01" value={abastLitrosEtanol} onChange={(e) => setAbastLitrosEtanol(e.target.value)} />
             </>
+          ) : (
+            <Input label="Litros" type="number" step="0.01" value={abastLitros} onChange={(e) => setAbastLitros(e.target.value)} />
           )}
+          <Input label="Valor (R$)" type="number" step="0.01" value={abastValor} onChange={(e) => setAbastValor(e.target.value)} required />
+          <Input label="Km" type="number" value={abastKm} onChange={(e) => setAbastKm(e.target.value)} />
+          <Input label="Posto" value={abastPosto} onChange={(e) => setAbastPosto(e.target.value)} />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setAbastModal(false)}>Cancelar</Button>
             <Button type="submit" disabled={createAbast.isPending}>Registrar</Button>
