@@ -1,11 +1,12 @@
 """Serviço de autenticação: login, registro e gestão de senhas."""
 
 import hashlib
+import logging
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 from fastapi import HTTPException, status
 from jose import jwt
-from passlib.hash import bcrypt as passlib_bcrypt
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -13,15 +14,21 @@ from app.config import settings
 from app.models.usuario import Usuario
 from app.schemas.auth import LoginRequest, RegisterRequest, UserUpdate
 
+logger = logging.getLogger(__name__)
+
 
 def _hash_bcrypt(password: str) -> str:
     """Gera hash bcrypt com 12 rounds."""
-    return passlib_bcrypt.using(rounds=12).hash(password)
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
 
 
 def _verify_bcrypt(password: str, hashed: str) -> bool:
     """Verifica senha contra hash bcrypt."""
-    return passlib_bcrypt.verify(password, hashed)
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+    except Exception as e:
+        logger.error("Erro ao verificar bcrypt: %s", e)
+        return False
 
 
 def _hash_sha256(password: str) -> str:
