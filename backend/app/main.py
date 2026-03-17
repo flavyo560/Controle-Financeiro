@@ -1,6 +1,7 @@
 """FastAPI application — Controle Financeiro API."""
 
 import logging
+import traceback
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +10,9 @@ from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
+
+# Configurar logging para ver erros no Render
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 from app.routers.auth import router as auth_router
 from app.routers.bancos import router as bancos_router
 from app.routers.cartoes import router as cartoes_router
@@ -37,6 +41,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
 # CORS — permite apenas o domínio do frontend
+logger.info("CORS origins configuradas: %s", settings.cors_origins_list)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -65,7 +70,8 @@ app.include_router(ferramentas_router, prefix="/api/v1/ferramentas", tags=["ferr
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Captura exceções não tratadas e retorna JSON padronizado."""
-    logger.error("Erro não tratado: %s", exc, exc_info=True)
+    logger.error("Erro não tratado em %s %s: %s", request.method, request.url.path, exc)
+    logger.error("Traceback: %s", traceback.format_exc())
     return JSONResponse(
         status_code=500,
         content={"detail": "Erro interno do servidor"},
@@ -76,3 +82,21 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 async def health_check() -> dict:
     """Endpoint de health check."""
     return {"status": "ok", "version": settings.APP_VERSION}
+
+
+@app.get("/api/v1/health/db")
+async def db_health_check() -> dict:
+    """Testa conexão com o banco de dados."""
+    from app.database import engine
+    from sqlalchemy import text
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT 1"))
+            result.fetchone()
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        logger.error("Erro de conexão com banco: %s", e)
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "database": str(e)},
+        )
