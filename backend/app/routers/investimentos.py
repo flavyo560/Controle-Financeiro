@@ -7,8 +7,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
+from app.models.despesa import Despesa
 from app.models.dividendo import Dividendo
 from app.models.investimento import Investimento
+from app.models.receita import Receita
 from app.schemas.investimento import (
     DividendoCreate,
     DividendoResponse,
@@ -66,7 +68,7 @@ def criar_investimento(
     current_user: Annotated[dict, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> InvestimentoResponse:
-    """Cria um novo investimento para o usuário."""
+    """Cria um novo investimento para o usuário e registra despesa correspondente."""
     usuario_id = current_user["user_id"]
     investimento = Investimento(
         usuario_id=usuario_id,
@@ -80,6 +82,23 @@ def criar_investimento(
         banco_id=data.banco_id,
     )
     db.add(investimento)
+
+    # Criar despesa correspondente (saída de dinheiro para investimento)
+    descricao = f"Investimento - {data.nome}"
+    if data.tipo:
+        descricao += f" ({data.tipo})"
+    despesa = Despesa(
+        usuario_id=usuario_id,
+        descricao=descricao,
+        valor=data.valor_investido,
+        data=data.data,
+        banco_id=data.banco_id,
+        categoria_id=data.categoria_id,
+        pago=True,
+        data_pagamento=data.data,
+    )
+    db.add(despesa)
+
     db.commit()
     db.refresh(investimento)
     return _investimento_response(investimento)
@@ -203,7 +222,7 @@ def registrar_dividendo(
     current_user: Annotated[dict, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> DividendoResponse:
-    """Registra um dividendo para um investimento do usuário."""
+    """Registra um dividendo para um investimento do usuário e cria receita correspondente."""
     usuario_id = current_user["user_id"]
     investimento = (
         db.query(Investimento)
@@ -222,6 +241,18 @@ def registrar_dividendo(
         data=data.data,
     )
     db.add(dividendo)
+
+    # Criar receita correspondente (dividendo é entrada de dinheiro)
+    receita = Receita(
+        usuario_id=usuario_id,
+        descricao=f"Dividendo - {investimento.nome}",
+        valor=data.valor,
+        data=data.data,
+        banco_id=investimento.banco_id,
+        categoria_id=investimento.categoria_id,
+    )
+    db.add(receita)
+
     db.commit()
     db.refresh(dividendo)
     return DividendoResponse.model_validate(dividendo)

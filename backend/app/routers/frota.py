@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
 from app.models.abastecimento import Abastecimento
+from app.models.despesa import Despesa
 from app.models.manutencao import Manutencao
 from app.models.veiculo import Veiculo
 from app.schemas.frota import (
@@ -150,9 +151,9 @@ def registrar_abastecimento(
     current_user: Annotated[dict, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> AbastecimentoResponse:
-    """Registra um abastecimento para um veículo do usuário."""
+    """Registra um abastecimento para um veículo do usuário e cria despesa correspondente."""
     usuario_id = current_user["user_id"]
-    _get_veiculo_do_usuario(db, veiculo_id, usuario_id)
+    veiculo = _get_veiculo_do_usuario(db, veiculo_id, usuario_id)
 
     abastecimento = Abastecimento(
         veiculo_id=veiculo_id,
@@ -166,6 +167,23 @@ def registrar_abastecimento(
         litros_etanol=data.litros_etanol,
     )
     db.add(abastecimento)
+
+    # Criar despesa correspondente
+    descricao = f"Abastecimento - {veiculo.nome_identificador}"
+    if data.tipo:
+        descricao += f" ({data.tipo})"
+    if data.posto:
+        descricao += f" - {data.posto}"
+    despesa = Despesa(
+        usuario_id=usuario_id,
+        descricao=descricao,
+        valor=data.valor,
+        data=data.data,
+        pago=True,
+        data_pagamento=data.data,
+    )
+    db.add(despesa)
+
     db.commit()
     db.refresh(abastecimento)
     return AbastecimentoResponse.model_validate(abastecimento)
@@ -256,9 +274,9 @@ def registrar_manutencao(
     current_user: Annotated[dict, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> ManutencaoResponse:
-    """Registra uma manutenção para um veículo do usuário."""
+    """Registra uma manutenção para um veículo do usuário e cria despesa correspondente."""
     usuario_id = current_user["user_id"]
-    _get_veiculo_do_usuario(db, veiculo_id, usuario_id)
+    veiculo = _get_veiculo_do_usuario(db, veiculo_id, usuario_id)
 
     manutencao = Manutencao(
         veiculo_id=veiculo_id,
@@ -268,6 +286,21 @@ def registrar_manutencao(
         km=data.km,
     )
     db.add(manutencao)
+
+    # Criar despesa correspondente
+    descricao = f"Manutenção - {veiculo.nome_identificador}"
+    if data.servico:
+        descricao += f" ({data.servico})"
+    despesa = Despesa(
+        usuario_id=usuario_id,
+        descricao=descricao,
+        valor=data.valor,
+        data=data.data,
+        pago=True,
+        data_pagamento=data.data,
+    )
+    db.add(despesa)
+
     db.commit()
     db.refresh(manutencao)
     return ManutencaoResponse.model_validate(manutencao)

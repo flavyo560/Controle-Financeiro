@@ -12,6 +12,7 @@ from app.models.banco import Banco
 from app.models.categoria import Categoria
 from app.models.despesa import Despesa
 from app.models.receita import Receita
+from app.models.transferencia import Transferencia
 from app.schemas.dashboard import (
     AlertaDespesa,
     DashboardResponse,
@@ -31,7 +32,7 @@ _ZERO = Decimal("0.00")
 # ---------------------------------------------------------------------------
 
 def _calcular_saldo_banco(db: Session, banco: Banco, usuario_id: int) -> Decimal:
-    """Calcula saldo de um banco: saldo_inicial + receitas - despesas pagas."""
+    """Calcula saldo de um banco: saldo_inicial + receitas - despesas pagas + transferencias_entrada - transferencias_saida."""
     total_receitas = Decimal(str(
         db.query(func.coalesce(func.sum(Receita.valor), 0))
         .filter(
@@ -51,8 +52,26 @@ def _calcular_saldo_banco(db: Session, banco: Banco, usuario_id: int) -> Decimal
         )
         .scalar()
     ))
+    # Transferências recebidas (banco é destino)
+    transferencias_entrada = Decimal(str(
+        db.query(func.coalesce(func.sum(Transferencia.valor), 0))
+        .filter(
+            Transferencia.banco_destino_id == banco.id,
+            Transferencia.usuario_id == usuario_id,
+        )
+        .scalar()
+    ))
+    # Transferências enviadas (banco é origem)
+    transferencias_saida = Decimal(str(
+        db.query(func.coalesce(func.sum(Transferencia.valor), 0))
+        .filter(
+            Transferencia.banco_origem_id == banco.id,
+            Transferencia.usuario_id == usuario_id,
+        )
+        .scalar()
+    ))
     saldo_inicial = Decimal(str(banco.saldo_inicial or 0))
-    return saldo_inicial + total_receitas - total_despesas
+    return saldo_inicial + total_receitas - total_despesas + transferencias_entrada - transferencias_saida
 
 
 # ---------------------------------------------------------------------------
