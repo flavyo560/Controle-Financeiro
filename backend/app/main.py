@@ -26,6 +26,7 @@ from app.routers.transferencias import router as transferencias_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.relatorios import router as relatorios_router
 from app.routers.ferramentas import router as ferramentas_router
+from app.routers.migrar_integracoes import router as migrar_router
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,7 @@ app.include_router(orcamento_router, prefix="/api/v1/orcamento", tags=["orcament
 app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["dashboard"])
 app.include_router(relatorios_router, prefix="/api/v1/relatorios", tags=["relatorios"])
 app.include_router(ferramentas_router, prefix="/api/v1/ferramentas", tags=["ferramentas"])
+app.include_router(migrar_router, prefix="/api/v1/migrar", tags=["migração"])
 
 
 # Global exception handler
