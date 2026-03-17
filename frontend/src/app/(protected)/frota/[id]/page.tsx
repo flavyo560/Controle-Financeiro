@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import Table, { Column } from "@/components/ui/Table";
+import Select from "@/components/ui/Select";
 import {
   useAbastecimentos,
   useCreateAbastecimento,
@@ -18,6 +19,14 @@ import {
 } from "@/hooks/useFrota";
 import { formatCurrency, formatDate, formatDecimal } from "@/lib/formatters";
 import type { Abastecimento, Manutencao } from "@/types";
+
+const tipoCombustivelOptions = [
+  { value: "", label: "Selecione..." },
+  { value: "Gasolina", label: "Gasolina" },
+  { value: "Álcool", label: "Álcool (Etanol)" },
+  { value: "Mistura", label: "Mistura" },
+  { value: "Outros", label: "Outros" },
+];
 
 export default function VeiculoDetalhePage() {
   const params = useParams();
@@ -38,6 +47,7 @@ export default function VeiculoDetalhePage() {
   const [abastValor, setAbastValor] = useState("");
   const [abastKm, setAbastKm] = useState("");
   const [abastPosto, setAbastPosto] = useState("");
+  const [abastTipo, setAbastTipo] = useState("");
 
   // Manutenção form
   const [manutModal, setManutModal] = useState(false);
@@ -56,11 +66,12 @@ export default function VeiculoDetalhePage() {
         valor: Number(abastValor),
         km: abastKm ? Number(abastKm) : undefined,
         posto: abastPosto || undefined,
+        tipo: abastTipo || undefined,
       },
       {
         onSuccess: () => {
           setAbastModal(false);
-          setAbastData(""); setAbastLitros(""); setAbastValor(""); setAbastKm(""); setAbastPosto("");
+          setAbastData(""); setAbastLitros(""); setAbastValor(""); setAbastKm(""); setAbastPosto(""); setAbastTipo("");
         },
       }
     );
@@ -91,6 +102,7 @@ export default function VeiculoDetalhePage() {
     { key: "valor", header: "Valor", render: (row) => formatCurrency(row.valor) },
     { key: "km", header: "Km", render: (row) => row.km ? formatDecimal(row.km, 0) : "—" },
     { key: "posto", header: "Posto", render: (row) => row.posto || "—" },
+    { key: "tipo", header: "Combustível", render: (row) => row.tipo || "—" },
     {
       key: "acoes",
       header: "Ações",
@@ -164,6 +176,7 @@ export default function VeiculoDetalhePage() {
           <Input label="Valor (R$)" type="number" step="0.01" value={abastValor} onChange={(e) => setAbastValor(e.target.value)} required />
           <Input label="Km" type="number" value={abastKm} onChange={(e) => setAbastKm(e.target.value)} />
           <Input label="Posto" value={abastPosto} onChange={(e) => setAbastPosto(e.target.value)} />
+          <Select label="Tipo de Combustível" options={tipoCombustivelOptions} value={abastTipo} onChange={(e) => setAbastTipo(e.target.value)} />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setAbastModal(false)}>Cancelar</Button>
             <Button type="submit" disabled={createAbast.isPending}>Registrar</Button>
