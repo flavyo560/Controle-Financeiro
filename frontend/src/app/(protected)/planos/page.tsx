@@ -75,8 +75,8 @@ export default function PlanosPage() {
         <PlanCard
           nome="Simples"
           descricao="Controle financeiro essencial para o dia a dia."
-          precoMensal={19.9}
-          precoAnual={199.9}
+          precoMensal={10}
+          precoAnual={110}
           modulos={MODULOS_SIMPLES}
           ciclo={ciclo}
           isCurrentPlan={planoEfetivo === "simples" && assinatura?.plano === "simples"}
@@ -85,8 +85,8 @@ export default function PlanosPage() {
         <PlanCard
           nome="Plus"
           descricao="Acesso completo a todos os módulos do sistema."
-          precoMensal={39.9}
-          precoAnual={399.9}
+          precoMensal={15}
+          precoAnual={160}
           modulos={MODULOS_PLUS}
           ciclo={ciclo}
           isCurrentPlan={planoEfetivo === "plus" && assinatura?.plano === "plus"}
