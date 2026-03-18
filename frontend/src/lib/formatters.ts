@@ -1,36 +1,30 @@
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number | null | undefined): string {
+  if (value == null) return "R$ 0,00";
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(value);
 }
 
-export function formatDate(dateStr: string): string {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  return new Intl.DateTimeFormat("pt-BR").format(date);
+export function formatDate(date: string | null | undefined): string {
+  if (!date) return "-";
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(date));
 }
 
-export function formatDateTime(dateStr: string): string {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
+export function formatDateTime(date: string | null | undefined): string {
+  if (!date) return "-";
   return new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
-  }).format(date);
+  }).format(new Date(date));
 }
 
-export function formatPercent(value: number): string {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "percent",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value / 100);
+export function formatPercent(value: number | null | undefined): string {
+  if (value == null) return "0%";
+  return `${value.toFixed(2)}%`;
 }
 
-export function formatDecimal(value: number, digits = 2): string {
-  return new Intl.NumberFormat("pt-BR", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  }).format(value);
+export function formatDecimal(value: number | null | undefined, decimals = 2): string {
+  if (value == null) return "0";
+  return value.toFixed(decimals).replace(".", ",");
 }

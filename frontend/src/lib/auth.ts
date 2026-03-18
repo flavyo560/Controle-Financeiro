@@ -1,42 +1,28 @@
-import api from "./api";
+import axios from "axios";
 
-const TOKEN_KEY = "token";
-const COOKIE_NAME = "access_token";
-
-function setCookie(name: string, value: string, days: number): void {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
-}
-
-function deleteCookie(name: string): void {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem("token");
 }
 
 export function setToken(token: string): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(TOKEN_KEY, token);
-  setCookie(COOKIE_NAME, token, 1);
+  localStorage.setItem("token", token);
+  document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
 }
 
 export function removeToken(): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(TOKEN_KEY);
-  deleteCookie(COOKIE_NAME);
+  localStorage.removeItem("token");
+  document.cookie = "token=; path=/; max-age=0; path=/";
 }
 
 export function isAuthenticated(): boolean {
   return !!getToken();
 }
 
-export async function login(
-  identificador: string,
-  senha: string
-): Promise<{ access_token: string; user: Record<string, unknown> }> {
-  const response = await api.post("/auth/login", { identificador, senha });
-  return response.data;
+export async function login(identificador: string, senha: string) {
+  const { data } = await axios.post(`${API_URL}/auth/login`, { identificador, senha });
+  setToken(data.access_token);
+  return data;
 }
