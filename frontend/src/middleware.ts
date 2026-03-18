@@ -23,7 +23,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Check for auth token in cookies
-  const token = request.cookies.get("access_token")?.value;
+  const token = request.cookies.get("token")?.value;
 
   if (!token) {
     const authHeader = request.headers.get("authorization");
@@ -40,7 +40,7 @@ export function middleware(request: NextRequest) {
       const expiry = payload.exp * 1000;
       if (Date.now() >= expiry) {
         const response = NextResponse.redirect(new URL("/login", request.url));
-        response.cookies.delete("access_token");
+        response.cookies.delete("token");
         return response;
       }
 
@@ -63,7 +63,7 @@ export function middleware(request: NextRequest) {
     } catch {
       // Invalid token format, redirect to login
       const response = NextResponse.redirect(new URL("/login", request.url));
-      response.cookies.delete("access_token");
+      response.cookies.delete("token");
       return response;
     }
   }
