@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QLabel
 from screens.veiculos import TelaVeiculos
-from screens.tela_combustivel import TelaCombustivel
+from screens.combustivel import TelaCombustivel
 from screens.manutencao import TelaManutencao
 
 class TelaGestaoFrota(QWidget):

@@ -4,7 +4,8 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QColor
-from database.db import conectar, calcular_saldo_banco
+import sqlite3
+from database import conectar, calcular_saldo_banco, executar_escrita, get_db_path
 from datetime import datetime
 
 class TelaBancos(QWidget):
@@ -101,24 +102,42 @@ class TelaBancos(QWidget):
 
     def salvar_banco(self):
         nome = self.input_nome.text().strip()
-        saldo_txt = self.input_saldo.text().replace(",", ".")
+        saldo_txt = self.input_saldo.text().strip().replace(",", ".")
         if not nome or not saldo_txt:
             QMessageBox.warning(self, "Aviso", "Preencha todos os campos!")
             return
         try:
+            saldo_valor = float(saldo_txt)
+            if not isinstance(saldo_valor, float):
+                raise ValueError()
+        except ValueError:
+            QMessageBox.warning(self, "Aviso", "Digite um saldo inicial válido (ex: 1000.00).")
+            return
+        try:
             conn = conectar()
             cur = conn.cursor()
-            cur.execute("INSERT INTO bancos (nome, saldo_inicial, criado_em, status) VALUES (?, ?, ?, 1)",
-                        (nome, float(saldo_txt), datetime.now().strftime("%Y-%m-%d")))
-            conn.commit()
-            conn.close()
+            cur.execute("SELECT 1 FROM bancos WHERE LOWER(nome) = LOWER(?) LIMIT 1", (nome,))
+            existe = cur.fetchone()
+            if existe:
+                conn.close()
+                QMessageBox.warning(self, "Aviso", "Já existe um banco com esse nome.")
+                return
+            conn.close()  # Fecha a conexão de leitura antes da escrita
+            sucesso = executar_escrita(
+                "INSERT INTO bancos (nome, saldo_inicial, criado_em, status) VALUES (?, ?, ?, 1)",
+                (nome, saldo_valor, datetime.now().strftime("%Y-%m-%d"))
+            )
+            if not sucesso:
+                raise Exception("Não foi possível gravar o banco após tentativas.")
             
             self.input_nome.clear()
             self.input_saldo.clear()
             self.atualizar()
             self.dados_atualizados.emit()
+        except sqlite3.IntegrityError:
+            QMessageBox.warning(self, "Aviso", "Nome de banco duplicado. Escolha outro nome.")
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao salvar: {e}")
+            QMessageBox.critical(self, "Erro", f"Erro ao salvar: {e}\nArquivo: {get_db_path()}")
 
     def desativar_banco(self):
         linha = self.tabela.currentRow()

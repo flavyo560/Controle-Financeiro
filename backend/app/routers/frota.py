@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
+from app.middleware.plano import require_plus
 from app.models.abastecimento import Abastecimento
 from app.models.despesa import Despesa
 from app.models.manutencao import Manutencao
@@ -24,7 +25,7 @@ from app.schemas.frota import (
     VeiculoUpdate,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_plus)])
 
 
 def _get_veiculo_do_usuario(

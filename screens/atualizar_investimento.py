@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QColor
-from database.db import conectar
+from database import conectar
 
 class TelaAtualizarTesouro(QWidget):
     dados_atualizados = pyqtSignal()

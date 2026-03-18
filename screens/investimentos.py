@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QMessageBox, QDateEdit, QHeaderView
 )
 from PyQt6.QtCore import QDate, pyqtSignal, Qt
-from database.db import conectar
+from database import conectar
 
 
 class TelaInvestimentos(QWidget):
@@ -174,26 +174,28 @@ class TelaInvestimentos(QWidget):
 
         try:
             valor = float(valor_txt)
-            conn = conectar()
-            cur = conn.cursor()
+            from database.db import get_db_manager
+            db = get_db_manager()
+            
+            with db.get_connection() as conn:
+                cur = conn.cursor()
 
-            if self.investimento_id is None:
-                cur.execute("""
-                    INSERT INTO investimentos (ativo, valor, tipo, data, categoria_id, banco_id)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (ativo, valor, tipo, data, cat_id, banco_id))
-            else:
-                cur.execute("""
-                    UPDATE investimentos
-                    SET ativo=?, valor=?, tipo=?, data=?, categoria_id=?, banco_id=?
-                    WHERE id=?
-                """, (ativo, valor, tipo, data, cat_id, banco_id, self.investimento_id))
-                self.investimento_id = None
-                self.btn_add.setText("Registrar")
-                self.btn_add.setStyleSheet("background-color: #00ffa3; color: black;")
+                if self.investimento_id is None:
+                    cur.execute("""
+                        INSERT INTO investimentos (nome, ativo, valor, valor_investido, tipo, data, categoria_id, banco_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (ativo, ativo, valor, valor, tipo, data, cat_id, banco_id))
+                else:
+                    cur.execute("""
+                        UPDATE investimentos
+                        SET nome=?, ativo=?, valor=?, valor_investido=?, tipo=?, data=?, categoria_id=?, banco_id=?
+                        WHERE id=?
+                    """, (ativo, ativo, valor, valor, tipo, data, cat_id, banco_id, self.investimento_id))
+                    self.investimento_id = None
+                    self.btn_add.setText("Registrar")
+                    self.btn_add.setStyleSheet("background-color: #00ffa3; color: black;")
 
-            conn.commit()
-            conn.close()
+                # Commit automático pelo context manager
 
             self.input_ativo.clear()
             self.input_valor.clear()

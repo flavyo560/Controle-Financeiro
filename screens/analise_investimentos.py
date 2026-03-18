@@ -1,8 +1,8 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame, QHBoxLayout, QComboBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame, QHBoxLayout, QComboBox, QApplication
 from PyQt6.QtCore import Qt
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from database.db import conectar
+from database import conectar
 from datetime import datetime
 
 class AnaliseInvestimentos(QWidget):
@@ -41,6 +41,13 @@ class AnaliseInvestimentos(QWidget):
         filtro_layout.addStretch()
         self.layout_principal.addLayout(filtro_layout)
 
+        # Loading indicator
+        self.lbl_loading = QLabel("Carregando dados...")
+        self.lbl_loading.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_loading.setStyleSheet("color: #00ffa3; font-size: 13px; font-weight: bold;")
+        self.lbl_loading.hide()
+        self.layout_principal.addWidget(self.lbl_loading)
+
         # Container do Gráfico
         frame_graficos = QFrame()
         frame_graficos.setStyleSheet("background-color: #121212; border-radius: 20px; border: 1px solid #1f1f1f;")
@@ -64,6 +71,9 @@ class AnaliseInvestimentos(QWidget):
         self.carregar_dados()
 
     def carregar_dados(self):
+        self.lbl_loading.show()
+        self.combo_ano.setEnabled(False)
+        QApplication.processEvents()
         self.ax.clear()
         ano = self.combo_ano.currentText()
         meses_labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
@@ -80,7 +90,7 @@ class AnaliseInvestimentos(QWidget):
             # Buscamos a soma do valor_atual de todos os ativos comprados até essa data
             # Nota: Ajuste os nomes das colunas 'valor_atual' e 'data_compra' se forem diferentes no seu banco
             try:
-                cur.execute("SELECT SUM(valor_atual) FROM investimentos WHERE data_compra <= ?", (data_limite,))
+                cur.execute("SELECT SUM(valor_atual) FROM investimentos WHERE data <= ?", (data_limite,))
                 total = cur.fetchone()[0] or 0
                 valores_patrimonio.append(total)
             except:
@@ -101,3 +111,5 @@ class AnaliseInvestimentos(QWidget):
         # Ajuste de layout e refresh
         self.fig.tight_layout()
         self.canvas.draw()
+        self.lbl_loading.hide()
+        self.combo_ano.setEnabled(True)

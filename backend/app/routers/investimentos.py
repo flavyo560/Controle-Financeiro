@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
+from app.middleware.plano import require_plus
 from app.models.despesa import Despesa
 from app.models.dividendo import Dividendo
 from app.models.investimento import Investimento
@@ -20,7 +21,7 @@ from app.schemas.investimento import (
     ValorAtualUpdate,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_plus)])
 
 
 def _calcular_rentabilidade(investimento: Investimento) -> Decimal:

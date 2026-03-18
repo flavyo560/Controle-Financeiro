@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QLabel, QHeaderView
 )
 from PyQt6.QtCore import Qt
-from database.db import conectar
+from database import conectar
 
 class TelaVeiculos(QWidget):
     def __init__(self):

@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QLabel, QComboBox
 )
 from PyQt6.QtCore import pyqtSignal
-from database.db import conectar
+from database import conectar
 
 
 class TelaCategorias(QWidget):

@@ -7,6 +7,9 @@ import Button from "@/components/ui/Button";
 import api from "@/lib/api";
 import type { Usuario } from "@/types";
 import toast from "react-hot-toast";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function PerfilPage() {
   const queryClient = useQueryClient();
@@ -18,9 +21,13 @@ export default function PerfilPage() {
     },
   });
 
+  const { assinatura, planoEfetivo, isTrial, diasRestantesTrial } = useSubscriptionStore();
+  const { openPortal } = useSubscription();
+  const { user: authUser } = useAuthStore();
+  const isAdmin = authUser?.perfil === "admin";
+
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
@@ -39,7 +46,6 @@ export default function PerfilPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["me"] });
       toast.success("Perfil atualizado com sucesso");
-      setSenhaAtual("");
       setNovaSenha("");
       setConfirmarSenha("");
     },
@@ -67,6 +73,13 @@ export default function PerfilPage() {
   };
 
   if (isLoading) return <p className="text-muted">Carregando...</p>;
+
+  const statusLabel: Record<string, string> = {
+    ativa: "Ativa",
+    cancelada: "Cancelada",
+    expirada: "Expirada",
+    inadimplente: "Inadimplente",
+  };
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -128,6 +141,55 @@ export default function PerfilPage() {
           </Button>
         </div>
       </Card>
+
+      {!isAdmin && (
+        <Card title="Assinatura">
+          <div className="space-y-3">
+            {assinatura ? (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted">Plano</span>
+                  <span className="text-foreground font-medium capitalize">{assinatura.plano}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted">Ciclo</span>
+                  <span className="text-foreground capitalize">{assinatura.ciclo}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted">Status</span>
+                  <span className={`font-medium ${
+                    assinatura.status === "ativa" ? "text-accent" : "text-danger"
+                  }`}>
+                    {statusLabel[assinatura.status] ?? assinatura.status}
+                  </span>
+                </div>
+                {assinatura.data_renovacao && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted">Renovação</span>
+                    <span className="text-foreground">
+                      {new Date(assinatura.data_renovacao).toLocaleDateString("pt-BR")}
+                    </span>
+                  </div>
+                )}
+                <Button variant="secondary" onClick={openPortal} className="w-full mt-2">
+                  Gerenciar Assinatura
+                </Button>
+              </>
+            ) : isTrial ? (
+              <div className="text-sm">
+                <p className="text-foreground">
+                  Você está no <span className="text-accent font-semibold">período de teste</span> com{" "}
+                  <span className="font-bold text-accent">{diasRestantesTrial}</span> dias restantes.
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-muted">
+                Plano atual: <span className="text-foreground capitalize">{planoEfetivo}</span>
+              </p>
+            )}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

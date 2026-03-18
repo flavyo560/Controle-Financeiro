@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import pyqtSignal, QDate, Qt
 from PyQt6.QtGui import QColor
-from database.db import conectar
+from database import conectar
 
 class TelaDividendos(QWidget):
     dados_atualizados = pyqtSignal()

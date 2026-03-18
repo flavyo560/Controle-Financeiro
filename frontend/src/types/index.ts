@@ -13,6 +13,9 @@ export interface Usuario {
   telefone?: string | null;
   perfil: string;
   criado_em: string;
+  trial_inicio?: string | null;
+  trial_usado?: boolean;
+  plano_efetivo?: string;
 }
 
 // --- Banco ---
@@ -546,4 +549,63 @@ export interface TotaisMensais {
   realizado_despesas: number;
   saldo_planejado: number;
   saldo_realizado: number;
+}
+
+
+// --- Assinatura ---
+export type PlanoTipo = "simples" | "plus";
+export type CicloCobranca = "mensal" | "anual";
+export type StatusAssinatura = "ativa" | "cancelada" | "expirada" | "inadimplente";
+
+export interface Assinatura {
+  plano: PlanoTipo;
+  ciclo: CicloCobranca;
+  status: StatusAssinatura;
+  data_inicio: string;
+  data_renovacao: string | null;
+  stripe_subscription_id: string | null;
+}
+
+export interface PlanoInfo {
+  id: string;
+  nome: string;
+  descricao: string;
+  preco_mensal: number;
+  preco_anual: number;
+  modulos: string[];
+}
+
+export interface CheckoutRequest {
+  plano: PlanoTipo;
+  ciclo: CicloCobranca;
+}
+
+export interface CheckoutResponse {
+  checkout_url: string;
+}
+
+export interface StatusAssinaturaResponse {
+  assinatura: Assinatura | null;
+  is_trial: boolean;
+  dias_restantes_trial: number;
+  plano_efetivo: string;
+}
+
+// --- Admin ---
+export interface AdminUsuario {
+  id: number;
+  nome: string;
+  email: string;
+  perfil: string;
+  criado_em: string;
+  plano_atual: PlanoTipo | null;
+  status_assinatura: StatusAssinatura | null;
+  trial_inicio: string | null;
+  trial_usado: boolean;
+  dias_restantes_trial: number;
+}
+
+export interface ConcederPlanoRequest {
+  plano: PlanoTipo;
+  ciclo: CicloCobranca;
 }

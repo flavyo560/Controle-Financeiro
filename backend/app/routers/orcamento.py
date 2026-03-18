@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
+from app.middleware.plano import require_plus
 from app.models.historico_orcamento import HistoricoOrcamento
 from app.models.item_orcamento import ItemOrcamento
 from app.models.orcamento import Orcamento
@@ -26,7 +27,7 @@ from app.schemas.orcamento import (
 )
 from app.services import orcamento_service
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_plus)])
 
 
 # ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 """Modelo ORM para tabela usuarios."""
 
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -19,8 +19,10 @@ class Usuario(Base):
     senha_hash_bcrypt = Column(String(255))
     cpf = Column(String(14))
     telefone = Column(String(20))
-    perfil = Column(String(50), default="admin")
+    perfil = Column(String(50), default="usuario")
     criado_em = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    trial_inicio = Column(DateTime(timezone=True))
+    trial_usado = Column(Boolean, nullable=False, server_default="false")
 
     # Relationships
     bancos = relationship("Banco", back_populates="usuario", cascade="all, delete-orphan")
@@ -35,3 +37,4 @@ class Usuario(Base):
     veiculos = relationship("Veiculo", back_populates="usuario", cascade="all, delete-orphan")
     orcamentos = relationship("Orcamento", back_populates="usuario", cascade="all, delete-orphan")
     configuracoes = relationship("Configuracao", back_populates="usuario", cascade="all, delete-orphan")
+    assinatura = relationship("Assinatura", back_populates="usuario", uselist=False)

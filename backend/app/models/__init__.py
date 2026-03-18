@@ -19,6 +19,8 @@ from app.models.orcamento import Orcamento
 from app.models.item_orcamento import ItemOrcamento
 from app.models.historico_orcamento import HistoricoOrcamento
 from app.models.configuracao import Configuracao
+from app.models.assinatura import Assinatura
+from app.models.log_assinatura import LogAssinatura
 
 __all__ = [
     "Usuario",
@@ -41,4 +43,6 @@ __all__ = [
     "ItemOrcamento",
     "HistoricoOrcamento",
     "Configuracao",
+    "Assinatura",
+    "LogAssinatura",
 ]

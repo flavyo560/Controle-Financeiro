@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (
     QMessageBox, QDateEdit, QLabel, QHeaderView, QComboBox, QCheckBox
 )
 from PyQt6.QtCore import QDate, pyqtSignal, Qt
-from database.db import conectar, listar_veiculos_ativos
+from database import conectar, listar_veiculos_ativos
 
 class TelaManutencao(QWidget):
     dados_atualizados = pyqtSignal()
@@ -173,37 +173,43 @@ class TelaManutencao(QWidget):
             
             data = self.input_data.date().toString("yyyy-MM-dd")
             km = self.input_km.text()
-            conn = conectar(); cur = conn.cursor()
             
-            if self.id_edicao:
-                # MODO UPDATE
-                cur.execute("""
-                    UPDATE manutencoes 
-                    SET data=?, servico=?, km=?, valor=?, veiculo_id=?
-                    WHERE id=?
-                """, (data, servico, km, valor, veiculo_id, self.id_edicao))
-                msg = "Manutenção atualizada!"
-            else:
-                # MODO INSERT
-                cur.execute("""
-                    INSERT INTO manutencoes (data, servico, km, valor, veiculo_id) 
-                    VALUES (?,?,?,?,?)
-                """, (data, servico, km, valor, veiculo_id))
+            from database.db import get_db_manager
+            db = get_db_manager()
+            
+            with db.get_connection() as conn:
+                cur = conn.cursor()
                 
-                # Lança no financeiro apenas se for NOVO (para evitar duplicar despesa no banco)
-                cur.execute("SELECT id FROM categorias WHERE nome = 'Manutenção' LIMIT 1")
-                res_cat = cur.fetchone(); cat_id = res_cat[0] if res_cat else 1
-                desc_veiculo = f" [{self.combo_veiculos.currentText()}]" if veiculo_id else ""
-                cur.execute("""
-                    INSERT INTO despesas (descricao, valor, data, categoria_id, banco_id) 
-                    VALUES (?,?,?,?,?)
-                """, (f"Manutenção: {servico}{desc_veiculo}", valor, data, cat_id, banco_id))
-                msg = "Manutenção registrada!"
+                if self.id_edicao:
+                    # MODO UPDATE
+                    cur.execute("""
+                        UPDATE manutencoes 
+                        SET data=?, servico=?, descricao=?, km=?, km_atual=?, valor=?, veiculo_id=?
+                        WHERE id=?
+                    """, (data, servico, servico, km, km, valor, veiculo_id, self.id_edicao))
+                    msg = "Manutenção atualizada!"
+                else:
+                    # MODO INSERT
+                    cur.execute("""
+                        INSERT INTO manutencoes (data, servico, descricao, km, km_atual, valor, veiculo_id) 
+                        VALUES (?,?,?,?,?,?,?)
+                    """, (data, servico, servico, km, km, valor, veiculo_id))
+                    
+                    # Lança no financeiro apenas se for NOVO (para evitar duplicar despesa no banco)
+                    cur.execute("SELECT id FROM categorias WHERE nome = 'Manutenção' LIMIT 1")
+                    res_cat = cur.fetchone(); cat_id = res_cat[0] if res_cat else 1
+                    desc_veiculo = f" [{self.combo_veiculos.currentText()}]" if veiculo_id else ""
+                    cur.execute("""
+                        INSERT INTO despesas (descricao, valor, data, categoria_id, banco_id, pago) 
+                        VALUES (?,?,?,?,?,0)
+                    """, (f"Manutenção: {servico}{desc_veiculo}", valor, data, cat_id, banco_id))
+                    msg = "Manutenção registrada!"
 
-            if self.check_padrao.isChecked():
-                cur.execute("INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES ('banco_padrao_manutencao', ?)", (str(banco_id),))
+                if self.check_padrao.isChecked():
+                    cur.execute("INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES ('banco_padrao_manutencao', ?)", (str(banco_id),))
 
-            conn.commit(); conn.close()
+                # Commit automático pelo context manager
+            
             self.limpar_campos()
             self.atualizar()
             self.dados_atualizados.emit()

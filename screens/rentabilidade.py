@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
-from database.db import conectar
+from database import conectar
 
 class TelaRentabilidade(QWidget):
     def __init__(self):

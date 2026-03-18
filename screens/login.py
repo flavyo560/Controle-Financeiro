@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QMessageBox, QLabel
 )
 from PyQt6.QtCore import pyqtSignal, Qt
-from database.db import validar_login
+from database import validar_login
 from screens.tela_atualizacao import TelaAtualizacaoUsuario
 
 class TelaLogin(QWidget):
@@ -115,7 +115,7 @@ class TelaLogin(QWidget):
             QMessageBox.critical(self, "Erro", "Acesso Negado! Verifique os dados.")
 
     def finalizar_login_apos_update(self, usuario_id):
-        from database.db import conectar
+        from database import conectar
         try:
             conn = conectar()
             cur = conn.cursor()

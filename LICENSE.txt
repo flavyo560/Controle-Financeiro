@@ -1,0 +1,56 @@
+TERMOS DE USO E LICENÇA
+Controle Financeiro v2.4
+
+Copyright (c) 2026 [Seu Nome ou Empresa]
+
+CONCESSÃO DE LICENÇA
+
+Este software é fornecido mediante licença. Ao instalar e usar este software, 
+você concorda com os seguintes termos:
+
+1. LICENÇA DE USO
+   - Este software requer ativação online para uso
+   - Cada licença é válida para um único computador
+   - A licença é pessoal e intransferível
+
+2. RESTRIÇÕES
+   - Você NÃO pode redistribuir este software
+   - Você NÃO pode modificar ou fazer engenharia reversa
+   - Você NÃO pode remover avisos de copyright
+
+3. PROPRIEDADE INTELECTUAL
+   - Todo o código e design são propriedade do desenvolvedor
+   - Todos os direitos reservados
+
+4. GARANTIA
+   - Este software é fornecido "COMO ESTÁ"
+   - Sem garantias expressas ou implícitas
+   - O desenvolvedor não se responsabiliza por perdas de dados
+
+5. SUPORTE
+   - Suporte técnico disponível via WhatsApp integrado
+   - Atualizações fornecidas conforme disponibilidade
+
+6. RESCISÃO
+   - Esta licença pode ser rescindida se os termos forem violados
+   - Ao rescindir, você deve desinstalar o software
+
+7. PRIVACIDADE
+   - O software coleta apenas ID do hardware para validação
+   - Nenhum dado financeiro é enviado para servidores externos
+   - Todos os dados são armazenados localmente
+
+ACEITAÇÃO DOS TERMOS
+
+Ao clicar em "Aceito" durante a instalação, você concorda com todos os 
+termos acima.
+
+Para dúvidas ou suporte, entre em contato através do WhatsApp integrado 
+no aplicativo.
+
+---
+
+[NEXO Arquitetura Digital]
+[Seu Email]
+[Seu Site]
+Data: 2026

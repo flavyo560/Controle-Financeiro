@@ -1,7 +1,7 @@
 import sys
 import webbrowser
 from PyQt6.QtWidgets import QApplication, QMessageBox
-from database.db import criar_tabelas, existe_usuario
+from database import criar_tabelas, existe_usuario
 from screens.login import TelaLogin
 from screens.cadastro_usuario import TelaCadastroUsuario
 from ui.main_window import MainWindow
@@ -11,6 +11,7 @@ from utils.licenca import verificar_status_licenca, ativar_sistema_online
 class AppController:
     def __init__(self):
         self.app = QApplication(sys.argv)
+        # Executar migrações antes de qualquer operação no banco
         criar_tabelas()
         self.ativador = None
         self.login = None
@@ -78,8 +79,17 @@ class AppController:
         if self.login: self.login.close()
         if self.cadastro: self.cadastro.close()
         if self.ativador: self.ativador.close()
-        self.main_window = MainWindow()
-        self.main_window.show()
+        try:
+            # Gerar lançamentos recorrentes automaticamente
+            from database import gerar_lancamentos_recorrentes
+            gerar_lancamentos_recorrentes()
+            
+            self.main_window = MainWindow()
+            self.main_window.show()
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(None, "Erro ao abrir dashboard", str(e))
 
     def abrir_contato_whatsapp(self):
         numero = "5566992108734" 

@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (
     QDateEdit, QLabel, QHeaderView, QCheckBox
 )
 from PyQt6.QtCore import QDate, pyqtSignal, Qt
-from database.db import conectar, listar_veiculos_ativos
+from database import conectar, listar_veiculos_ativos
 
 class TelaCombustivel(QWidget):
     dados_atualizados = pyqtSignal()
@@ -174,38 +174,43 @@ class TelaCombustivel(QWidget):
             eta = float(self.input_litros_eta.text().replace(",", ".") or 0)
             tipo = self.combo_tipo.currentText()
             
-            conn = conectar(); cur = conn.cursor()
+            from database.db import get_db_manager
+            db = get_db_manager()
             
-            if self.id_edicao:
-                # MODO UPDATE
-                cur.execute("""
-                    UPDATE abastecimentos 
-                    SET data=?, km=?, litros=?, litros_gasolina=?, litros_etanol=?, valor=?, tipo=?, veiculo_id=?
-                    WHERE id=?
-                """, (data, km, gas+eta, gas, eta, valor, tipo, veiculo_id, self.id_edicao))
-                msg = "Abastecimento atualizado!"
-            else:
-                # MODO INSERT
-                cur.execute("""
-                    INSERT INTO abastecimentos 
-                    (data, km, litros, litros_gasolina, litros_etanol, valor, tipo, veiculo_id) 
-                    VALUES (?,?,?,?,?,?,?,?)
-                """, (data, km, gas+eta, gas, eta, valor, tipo, veiculo_id))
+            with db.get_connection() as conn:
+                cur = conn.cursor()
                 
-                # Só gera despesa nova se for registro novo (para não duplicar no financeiro)
-                cur.execute("SELECT id FROM categorias WHERE nome = 'Combustível' LIMIT 1")
-                res_cat = cur.fetchone(); cat_id = res_cat[0] if res_cat else 1
-                desc_veiculo = f" ({self.combo_veiculos.currentText()})" if veiculo_id else ""
-                cur.execute("""
-                    INSERT INTO despesas (descricao, valor, data, categoria_id, banco_id) 
-                    VALUES (?,?,?,?,?)
-                """, (f"Combustível: {tipo}{desc_veiculo}", valor, data, cat_id, banco_id))
-                msg = "Abastecimento registrado!"
+                if self.id_edicao:
+                    # MODO UPDATE
+                    cur.execute("""
+                        UPDATE abastecimentos 
+                        SET data=?, km=?, litros=?, litros_gasolina=?, litros_etanol=?, valor=?, valor_total=?, tipo=?, veiculo_id=?
+                        WHERE id=?
+                    """, (data, km, gas+eta, gas, eta, valor, valor, tipo, veiculo_id, self.id_edicao))
+                    msg = "Abastecimento atualizado!"
+                else:
+                    # MODO INSERT
+                    cur.execute("""
+                        INSERT INTO abastecimentos 
+                        (data, km, litros, litros_gasolina, litros_etanol, valor, valor_total, tipo, veiculo_id) 
+                        VALUES (?,?,?,?,?,?,?,?,?)
+                    """, (data, km, gas+eta, gas, eta, valor, valor, tipo, veiculo_id))
+                    
+                    # Só gera despesa nova se for registro novo (para não duplicar no financeiro)
+                    cur.execute("SELECT id FROM categorias WHERE nome = 'Combustível' LIMIT 1")
+                    res_cat = cur.fetchone(); cat_id = res_cat[0] if res_cat else 1
+                    desc_veiculo = f" ({self.combo_veiculos.currentText()})" if veiculo_id else ""
+                    cur.execute("""
+                        INSERT INTO despesas (descricao, valor, data, categoria_id, banco_id, pago) 
+                        VALUES (?,?,?,?,?,0)
+                    """, (f"Combustível: {tipo}{desc_veiculo}", valor, data, cat_id, banco_id))
+                    msg = "Abastecimento registrado!"
 
-            if self.check_padrao.isChecked():
-                cur.execute("INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES ('banco_padrao_combustivel', ?)", (str(banco_id),))
+                if self.check_padrao.isChecked():
+                    cur.execute("INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES ('banco_padrao_combustivel', ?)", (str(banco_id),))
+                
+                # Commit automático pelo context manager
             
-            conn.commit(); conn.close()
             self.atualizar(); self.dados_atualizados.emit()
             QMessageBox.information(self, "Sucesso", msg)
             self.limpar_campos()

@@ -1,8 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useAuthStore } from "@/stores/authStore";
+import { useSubscriptionStore } from "@/stores/subscriptionStore";
+import UpgradeModal from "@/components/subscription/UpgradeModal";
+
+const RESTRICTED_HREFS = ["/cartoes", "/investimentos", "/frota", "/orcamento"];
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
@@ -17,16 +22,29 @@ const navLinks = [
   { href: "/orcamento", label: "Orçamento" },
   { href: "/relatorios/mensal", label: "Relatórios" },
   { href: "/ferramentas", label: "Ferramentas" },
+  { href: "/planos", label: "Planos" },
   { href: "/perfil", label: "Perfil" },
 ];
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
+  const [upgradeModule, setUpgradeModule] = useState<string | null>(null);
   const pathname = usePathname();
+  const { user } = useAuthStore();
+  const { hasAccess } = useSubscriptionStore();
+
+  const isAdmin = user?.perfil === "admin";
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";
     return pathname.startsWith(href);
+  };
+
+  const isRestricted = (href: string) => {
+    if (isAdmin) return false;
+    if (!RESTRICTED_HREFS.includes(href)) return false;
+    const modulo = href.replace("/", "");
+    return !hasAccess(modulo);
   };
 
   return (
@@ -44,10 +62,7 @@ export default function Sidebar() {
 
       {/* Overlay */}
       {open && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60"
-          onClick={() => setOpen(false)}
-        />
+        <div className="fixed inset-0 z-50 bg-black/60" onClick={() => setOpen(false)} />
       )}
 
       {/* Sidebar panel */}
@@ -69,22 +84,67 @@ export default function Sidebar() {
           </button>
         </div>
         <nav className="flex flex-col p-2 gap-1">
-          {navLinks.map((link) => (
+          {navLinks.map((link) => {
+            const restricted = isRestricted(link.href);
+
+            if (restricted) {
+              return (
+                <button
+                  key={link.href}
+                  onClick={() => {
+                    setOpen(false);
+                    setUpgradeModule(link.label);
+                  }}
+                  className="px-4 py-2.5 rounded-lg text-sm transition-colors text-muted/50 text-left flex items-center gap-2"
+                >
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {link.label}
+                </button>
+              );
+            }
+
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className={`px-4 py-2.5 rounded-lg text-sm transition-colors ${
+                  isActive(link.href)
+                    ? "bg-accent/10 text-accent border-l-2 border-accent"
+                    : "text-foreground hover:bg-surface-hover hover:text-accent"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+          {isAdmin && (
             <Link
-              key={link.href}
-              href={link.href}
+              href="/admin/usuarios"
               onClick={() => setOpen(false)}
               className={`px-4 py-2.5 rounded-lg text-sm transition-colors ${
-                isActive(link.href)
+                pathname.startsWith("/admin")
                   ? "bg-accent/10 text-accent border-l-2 border-accent"
                   : "text-foreground hover:bg-surface-hover hover:text-accent"
               }`}
             >
-              {link.label}
+              Admin
             </Link>
-          ))}
+          )}
         </nav>
       </aside>
+
+      <UpgradeModal
+        isOpen={!!upgradeModule}
+        onClose={() => setUpgradeModule(null)}
+        moduleName={upgradeModule ?? ""}
+      />
     </div>
   );
 }

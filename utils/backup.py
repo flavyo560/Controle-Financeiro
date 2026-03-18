@@ -1,9 +1,10 @@
 import shutil
+import os
 from pathlib import Path
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
 # caminho real do banco
-DB_PATH = Path(__file__).resolve().parent.parent / "financas.db"
+DB_PATH = Path(os.getenv("LOCALAPPDATA")) / "ControleFinanceiro" / "financas.db"
 
 
 def realizar_backup(parent):

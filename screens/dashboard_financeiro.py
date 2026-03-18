@@ -1,13 +1,21 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-    QFrame, QComboBox, QPushButton, QGridLayout, QScrollArea
+    QFrame, QComboBox, QPushButton, QGridLayout, QScrollArea, QApplication
 )
-from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtCore import Qt, QDate, pyqtSignal
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from database.db import conectar, calcular_saldo_banco
+from database import (
+    conectar, calcular_saldo_banco,
+    calcular_total_despesas_vencidas,
+    calcular_despesas_vencendo_periodo,
+    calcular_despesas_vencendo_mes_atual
+)
 
 class DashboardFinanceiro(QWidget):
+    # Sinal para navegar para tela de despesas com filtro
+    navegar_despesas = pyqtSignal(str)
+    
     def __init__(self):
         super().__init__()
         self.init_ui()
@@ -87,6 +95,20 @@ class DashboardFinanceiro(QWidget):
         
         self.layout_principal.addLayout(grid_layout)
 
+        # ---------- INDICADORES DE VENCIMENTO ----------
+        vencimento_layout = QHBoxLayout()
+        vencimento_layout.setSpacing(15)
+        
+        self.card_vencidas = self.criar_card_vencimento("DESPESAS VENCIDAS", "#ff4757", "vencidas")
+        self.card_vencendo_7d = self.criar_card_vencimento("VENCENDO EM 7 DIAS", "#ffa502", "vencendo_7d")
+        self.card_vencendo_mes = self.criar_card_vencimento("VENCENDO ESTE MÊS", "#3742fa", "vencendo_mes")
+        
+        vencimento_layout.addWidget(self.card_vencidas)
+        vencimento_layout.addWidget(self.card_vencendo_7d)
+        vencimento_layout.addWidget(self.card_vencendo_mes)
+        
+        self.layout_principal.addLayout(vencimento_layout)
+
         # ---------- GRÁFICOS ----------
         container_graficos = QFrame()
         container_graficos.setStyleSheet("background-color: #0b0b0b; border-radius: 12px; border: 1px solid #252525;")
@@ -103,6 +125,14 @@ class DashboardFinanceiro(QWidget):
 
         self.layout_charts.addWidget(self.canvas_desp)
         self.layout_charts.addWidget(self.canvas_rec)
+
+        # Loading indicator
+        self.lbl_loading = QLabel("Carregando...")
+        self.lbl_loading.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_loading.setStyleSheet("color: #00ffa3; font-size: 14px; font-weight: bold;")
+        self.lbl_loading.hide()
+        self.layout_principal.addWidget(self.lbl_loading)
+
         self.layout_principal.addWidget(container_graficos)
         
         self.atualizar()
@@ -119,7 +149,59 @@ class DashboardFinanceiro(QWidget):
         card.valor_label = v
         return card
 
+    def criar_card_vencimento(self, titulo, cor, tipo):
+        """Cria card clicável para indicadores de vencimento"""
+        card = QFrame()
+        card.setFixedHeight(120)
+        card.setStyleSheet(f"""
+            QFrame {{ 
+                background-color: #1a1a1a; 
+                border: 2px solid {cor}; 
+                border-radius: 10px; 
+            }}
+            QFrame:hover {{
+                background-color: #252525;
+                cursor: pointer;
+            }}
+        """)
+        card.setCursor(Qt.CursorShape.PointingHandCursor)
+        
+        lay = QVBoxLayout(card)
+        lay.setSpacing(5)
+        
+        t = QLabel(titulo)
+        t.setStyleSheet(f"color: {cor}; font-size: 12px; font-weight: bold; border: none;")
+        t.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        qtd = QLabel("0")
+        qtd.setStyleSheet(f"color: {cor}; font-size: 28px; font-weight: bold; border: none;")
+        qtd.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        valor = QLabel("R$ 0,00")
+        valor.setStyleSheet(f"color: white; font-size: 16px; font-weight: bold; border: none;")
+        valor.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        lay.addWidget(t)
+        lay.addWidget(qtd)
+        lay.addWidget(valor)
+        
+        card.qtd_label = qtd
+        card.valor_label = valor
+        card.tipo = tipo
+        
+        # Conectar clique
+        card.mousePressEvent = lambda event: self.navegar_para_despesas(tipo)
+        
+        return card
+    
+    def navegar_para_despesas(self, filtro):
+        """Emite sinal para navegar para tela de despesas com filtro aplicado"""
+        self.navegar_despesas.emit(filtro)
+
     def atualizar(self):
+        self.lbl_loading.show()
+        self.btn_filtrar.setEnabled(False)
+        QApplication.processEvents()
         try:
             conn = conectar(); cur = conn.cursor()
             mes_idx = self.combo_mes.currentIndex() + 1
@@ -150,16 +232,25 @@ class DashboardFinanceiro(QWidget):
 
             self.lbl_patr_valor.setText(f"R$ {total_geral:,.2f}")
 
-            # 2. FUNÇÃO DE SOMA FILTRADA POR BANCOS ATIVOS
+            # 2. FUNÇÃO DE SOMA FILTRADA POR BANCOS ATIVOS E STATUS DE PAGAMENTO
             def obter_soma(tabela):
                 try:
                     # Inner Join com bancos para filtrar apenas os que têm status = 1
-                    query = f"""
-                        SELECT SUM(t.valor) 
-                        FROM {tabela} t
-                        INNER JOIN bancos b ON t.banco_id = b.id
-                        WHERE strftime('%Y-%m', t.data) = ? AND b.status = 1
-                    """
+                    # Para despesas, considerar apenas as marcadas como pagas (pago = 1)
+                    if tabela == 'despesas':
+                        query = f"""
+                            SELECT SUM(t.valor) 
+                            FROM {tabela} t
+                            INNER JOIN bancos b ON t.banco_id = b.id
+                            WHERE strftime('%Y-%m', t.data) = ? AND b.status = 1 AND t.pago = 1
+                        """
+                    else:
+                        query = f"""
+                            SELECT SUM(t.valor) 
+                            FROM {tabela} t
+                            INNER JOIN bancos b ON t.banco_id = b.id
+                            WHERE strftime('%Y-%m', t.data) = ? AND b.status = 1
+                        """
                     cur.execute(query, (periodo,))
                     res = cur.fetchone()[0]
                     return float(res) if res else 0.0
@@ -182,7 +273,7 @@ class DashboardFinanceiro(QWidget):
                 FROM despesas d 
                 JOIN categorias c ON d.categoria_id = c.id 
                 JOIN bancos b ON d.banco_id = b.id
-                WHERE strftime('%Y-%m', d.data) = ? AND b.status = 1
+                WHERE strftime('%Y-%m', d.data) = ? AND b.status = 1 AND d.pago = 1
                 GROUP BY c.nome
             """, (periodo,))
             dados_d = cur.fetchall()
@@ -208,4 +299,32 @@ class DashboardFinanceiro(QWidget):
 
             self.canvas_desp.draw(); self.canvas_rec.draw()
             conn.close()
+            
+            # 4. ATUALIZAR INDICADORES DE VENCIMENTO
+            self.atualizar_indicadores_vencimento()
+            
         except Exception as e: print(f"Erro no Dash: {e}")
+        finally:
+            self.lbl_loading.hide()
+            self.btn_filtrar.setEnabled(True)
+    
+    def atualizar_indicadores_vencimento(self):
+        """Atualiza os cards de indicadores de vencimento"""
+        try:
+            # Despesas vencidas
+            qtd_vencidas, valor_vencidas = calcular_total_despesas_vencidas()
+            self.card_vencidas.qtd_label.setText(str(qtd_vencidas))
+            self.card_vencidas.valor_label.setText(f"R$ {valor_vencidas:,.2f}")
+            
+            # Vencendo em 7 dias
+            qtd_7d, valor_7d = calcular_despesas_vencendo_periodo(7)
+            self.card_vencendo_7d.qtd_label.setText(str(qtd_7d))
+            self.card_vencendo_7d.valor_label.setText(f"R$ {valor_7d:,.2f}")
+            
+            # Vencendo este mês
+            qtd_mes, valor_mes = calcular_despesas_vencendo_mes_atual()
+            self.card_vencendo_mes.qtd_label.setText(str(qtd_mes))
+            self.card_vencendo_mes.valor_label.setText(f"R$ {valor_mes:,.2f}")
+            
+        except Exception as e:
+            print(f"Erro ao atualizar indicadores de vencimento: {e}")

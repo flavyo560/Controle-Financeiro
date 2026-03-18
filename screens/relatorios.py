@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
     QComboBox, QTableWidget, QTableWidgetItem, QHeaderView
 )
 from PyQt6.QtCore import Qt
-from database.db import conectar
+from database import conectar
 from datetime import datetime
 
 class TelaRelatorios(QWidget):

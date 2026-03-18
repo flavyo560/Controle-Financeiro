@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
+from app.middleware.plano import require_plus
 from app.models.cartao import Cartao
 from app.schemas.cartao import (
     CartaoCreate,
@@ -28,7 +29,7 @@ from app.services.cartao_service import (
     registrar_compra_parcelada,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_plus)])
 
 
 # ---------------------------------------------------------------------------

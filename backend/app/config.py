@@ -18,10 +18,28 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: str = "http://localhost:3000"
 
+    # Stripe
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_SIMPLES_MENSAL: str = ""
+    STRIPE_PRICE_SIMPLES_ANUAL: str = ""
+    STRIPE_PRICE_PLUS_MENSAL: str = ""
+    STRIPE_PRICE_PLUS_ANUAL: str = ""
+
     # App
     APP_NAME: str = "Controle Financeiro API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
+
+    @property
+    def stripe_prices(self) -> dict[str, str]:
+        """Retorna mapeamento plano_ciclo → price_id do Stripe."""
+        return {
+            "simples_mensal": self.STRIPE_PRICE_SIMPLES_MENSAL,
+            "simples_anual": self.STRIPE_PRICE_SIMPLES_ANUAL,
+            "plus_mensal": self.STRIPE_PRICE_PLUS_MENSAL,
+            "plus_anual": self.STRIPE_PRICE_PLUS_ANUAL,
+        }
 
     @property
     def cors_origins_list(self) -> list[str]:

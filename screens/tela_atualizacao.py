@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QLabel, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from database.db import conectar
+from database import conectar
 
 class TelaAtualizacaoUsuario(QWidget):
     perfil_atualizado = pyqtSignal()

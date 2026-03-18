@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QMessageBox, QDateEdit, QHeaderView
 )
 from PyQt6.QtCore import QDate, pyqtSignal, Qt
-from database.db import conectar
+from database import conectar
 
 class TelaReceitas(QWidget):
     dados_atualizados = pyqtSignal()
@@ -16,6 +16,8 @@ class TelaReceitas(QWidget):
         self.resize(900, 600)
 
         self.receita_id = None
+        self.pagina_atual = 0
+        self.itens_por_pagina = 20
 
         # 1. ESTILO DA TELA (DARK MODE)
         self.setStyleSheet("""
@@ -142,6 +144,22 @@ class TelaReceitas(QWidget):
 
         layout.addLayout(btns)
 
+        # ---------- PAGINAÇÃO ----------
+        pag = QHBoxLayout()
+        self.btn_anterior = QPushButton("◀ Anterior")
+        self.btn_anterior.clicked.connect(self.pagina_anterior)
+        self.lbl_pagina = QLabel("Página 1")
+        self.lbl_pagina.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_pagina.setStyleSheet("color: #a4b0be;")
+        self.btn_proxima = QPushButton("Próxima ▶")
+        self.btn_proxima.clicked.connect(self.proxima_pagina)
+        pag.addStretch()
+        pag.addWidget(self.btn_anterior)
+        pag.addWidget(self.lbl_pagina)
+        pag.addWidget(self.btn_proxima)
+        pag.addStretch()
+        layout.addLayout(pag)
+
         self.atualizar()
 
     def atualizar(self):
@@ -227,14 +245,22 @@ class TelaReceitas(QWidget):
         try:
             conn = conectar()
             cur = conn.cursor()
-            # SQL atualizado com JOIN para buscar o nome do Banco
+            cur.execute("SELECT COUNT(*) FROM receitas r JOIN categorias c ON r.categoria_id = c.id")
+            total = cur.fetchone()[0]
+            total_paginas = max(1, (total + self.itens_por_pagina - 1) // self.itens_por_pagina)
+            self.pagina_atual = max(0, min(self.pagina_atual, total_paginas - 1))
+            offset = self.pagina_atual * self.itens_por_pagina
+            self.lbl_pagina.setText(f"Página {self.pagina_atual + 1} de {total_paginas}")
+            self.btn_anterior.setEnabled(self.pagina_atual > 0)
+            self.btn_proxima.setEnabled(self.pagina_atual < total_paginas - 1)
             cur.execute("""
                 SELECT r.id, r.descricao, r.valor, r.data, c.nome, b.nome
                 FROM receitas r
                 JOIN categorias c ON r.categoria_id = c.id
                 LEFT JOIN bancos b ON r.banco_id = b.id
                 ORDER BY r.data DESC
-            """)
+                LIMIT ? OFFSET ?
+            """, (self.itens_por_pagina, offset))
             for row_data in cur.fetchall():
                 row = self.tabela.rowCount()
                 self.tabela.insertRow(row)
@@ -246,6 +272,15 @@ class TelaReceitas(QWidget):
             conn.close()
         except Exception as e:
             print(f"Erro ao carregar receitas: {e}")
+
+    def pagina_anterior(self):
+        if self.pagina_atual > 0:
+            self.pagina_atual -= 1
+            self.carregar_receitas()
+
+    def proxima_pagina(self):
+        self.pagina_atual += 1
+        self.carregar_receitas()
 
     def editar_receita(self):
         linha = self.tabela.currentRow()

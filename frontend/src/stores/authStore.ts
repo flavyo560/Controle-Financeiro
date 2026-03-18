@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { Usuario } from "@/types";
 import { getToken, removeToken, setToken, isAuthenticated } from "@/lib/auth";
 import api from "@/lib/api";
+import { useSubscriptionStore } from "./subscriptionStore";
 
 interface AuthState {
   user: Usuario | null;
@@ -35,6 +36,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const response = await api.get("/auth/me");
       set({ user: response.data, isLoading: false });
+      useSubscriptionStore.getState().fetchSubscription();
     } catch {
       removeToken();
       set({

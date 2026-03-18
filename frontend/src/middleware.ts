@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/cadastro"];
+const RESTRICTED_PATHS = ["/frota", "/investimentos", "/orcamento", "/cartoes"];
+const ADMIN_PATHS = ["/admin"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -24,7 +26,6 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("access_token")?.value;
 
   if (!token) {
-    // Also check Authorization header (for API-like requests)
     const authHeader = request.headers.get("authorization");
     if (!authHeader) {
       const loginUrl = new URL("/login", request.url);
@@ -32,7 +33,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // If token exists, try to check expiration
+  // If token exists, try to check expiration and extract plan/profile
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
@@ -41,6 +42,23 @@ export function middleware(request: NextRequest) {
         const response = NextResponse.redirect(new URL("/login", request.url));
         response.cookies.delete("access_token");
         return response;
+      }
+
+      const perfil = payload.perfil || "";
+      const plano = payload.plano || "";
+
+      // Admin route protection
+      if (ADMIN_PATHS.some((p) => pathname.startsWith(p))) {
+        if (perfil !== "admin") {
+          return NextResponse.redirect(new URL("/dashboard", request.url));
+        }
+      }
+
+      // Restricted module route protection
+      if (RESTRICTED_PATHS.some((p) => pathname.startsWith(p))) {
+        if (perfil !== "admin" && plano !== "plus") {
+          return NextResponse.redirect(new URL("/planos", request.url));
+        }
       }
     } catch {
       // Invalid token format, redirect to login

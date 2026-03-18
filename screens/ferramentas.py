@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
     QMessageBox, QLineEdit, QApplication, QLabel
 )
 from utils.backup import realizar_backup, restaurar_backup
-from database.db import resetar_banco
+from database import resetar_banco
 from screens.cadastro_usuario import TelaCadastroUsuario
 
 class TelaFerramentas(QWidget):

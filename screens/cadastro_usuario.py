@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QMessageBox, QLabel
 )
 from PyQt6.QtCore import pyqtSignal, Qt
-from database.db import criar_usuario, conectar
+from database import criar_usuario, conectar, hash_senha
 
 class TelaCadastroUsuario(QWidget):
     usuario_criado = pyqtSignal()
@@ -12,7 +12,7 @@ class TelaCadastroUsuario(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Cadastro Inicial")
-        self.setFixedSize(400, 480) # Ajustado para os novos campos
+        self.setFixedSize(400, 540)
         
         self.setStyleSheet("""
             QWidget { background-color: #0b0b0b; color: white; }
@@ -38,47 +38,45 @@ class TelaCadastroUsuario(QWidget):
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(titulo)
 
-        # --- NOME E SOBRENOME ---
         layout.addWidget(QLabel("NOME E SOBRENOME:"))
         layout_nome = QHBoxLayout()
         self.input_nome = QLineEdit()
         self.input_nome.setPlaceholderText("Nome")
-        
         self.input_sobrenome = QLineEdit()
         self.input_sobrenome.setPlaceholderText("Sobrenome")
-        
         layout_nome.addWidget(self.input_nome)
         layout_nome.addWidget(self.input_sobrenome)
         layout.addLayout(layout_nome)
 
-        # --- CPF ---
         layout.addWidget(QLabel("CPF:"))
         self.input_cpf = QLineEdit()
         self.input_cpf.setPlaceholderText("000.000.000-00")
         self.input_cpf.setInputMask("000.000.000-00;_")
         layout.addWidget(self.input_cpf)
 
-        # --- TELEFONE ---
         layout.addWidget(QLabel("TELEFONE:"))
         self.input_tel = QLineEdit()
         self.input_tel.setPlaceholderText("(00) 00000-0000")
         self.input_tel.setInputMask("(00) 00000-0000;_")
         layout.addWidget(self.input_tel)
 
-        # --- EMAIL ---
         layout.addWidget(QLabel("E-MAIL:"))
         self.input_email = QLineEdit()
         self.input_email.setPlaceholderText("exemplo@email.com")
         layout.addWidget(self.input_email)
 
-        # --- SENHA ---
         layout.addWidget(QLabel("SENHA:"))
         self.input_senha = QLineEdit()
         self.input_senha.setPlaceholderText("Crie uma senha forte")
         self.input_senha.setEchoMode(QLineEdit.EchoMode.Password)
         layout.addWidget(self.input_senha)
 
-        # --- BOTÃO ---
+        layout.addWidget(QLabel("CONFIRMAR SENHA:"))
+        self.input_confirmar_senha = QLineEdit()
+        self.input_confirmar_senha.setPlaceholderText("Repita a senha")
+        self.input_confirmar_senha.setEchoMode(QLineEdit.EchoMode.Password)
+        layout.addWidget(self.input_confirmar_senha)
+
         self.btn = QPushButton("Finalizar Cadastro")
         self.btn.clicked.connect(self.tentar_criar)
         layout.addWidget(self.btn)
@@ -92,16 +90,23 @@ class TelaCadastroUsuario(QWidget):
         sobrenome = self.input_sobrenome.text().strip()
         email = self.input_email.text().strip()
         senha = self.input_senha.text().strip()
+        confirmar = self.input_confirmar_senha.text().strip()
         cpf = self.input_cpf.text().strip()
         tel = self.input_tel.text().strip()
 
-        # Limpeza para validação
         clean_cpf = re.sub(r'\D', '', cpf)
         clean_tel = re.sub(r'\D', '', tel)
 
-        # 1. Validação de campos vazios ou incompletos
         if not nome or not sobrenome or not senha:
             QMessageBox.warning(self, "Campos Vazios", "Preencha Nome, Sobrenome e Senha.")
+            return
+
+        if senha != confirmar:
+            QMessageBox.warning(self, "Senhas Diferentes", "As senhas não coincidem. Verifique e tente novamente.")
+            return
+
+        if len(senha) < 6:
+            QMessageBox.warning(self, "Senha Fraca", "A senha deve ter pelo menos 6 caracteres.")
             return
 
         if len(clean_cpf) < 11:
@@ -116,30 +121,23 @@ class TelaCadastroUsuario(QWidget):
             QMessageBox.warning(self, "E-mail Inválido", "Use um formato válido: exemplo@email.com")
             return
 
-        # 2. Executar criação no Banco de Dados
         try:
-            # Garante que as colunas novas existam no banco antes de tentar inserir
             self.garantir_colunas()
-
             nome_completo = f"{nome} {sobrenome}"
-            
-            # Aqui vamos usar o banco diretamente para incluir os novos campos
             conn = conectar()
             cur = conn.cursor()
             cur.execute("""
-                INSERT INTO usuarios (nome, email, senha, cpf, telefone) 
-                VALUES (?, ?, ?, ?, ?)
-            """, (nome_completo, email, senha, cpf, tel))
+                INSERT INTO usuarios (nome, email, senha_hash, cpf, telefone, perfil, criado_em) 
+                VALUES (?, ?, ?, ?, ?, 'admin', datetime('now'))
+            """, (nome_completo, email, hash_senha(senha), cpf, tel))
             conn.commit()
             conn.close()
-            
             QMessageBox.information(self, "Sucesso!", "Sua conta foi criada com sucesso!")
             self.usuario_criado.emit()
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao criar usuário: {e}")
 
     def garantir_colunas(self):
-        """Função auxiliar para garantir que o banco suporte CPF e Telefone"""
         try:
             conn = conectar()
             cur = conn.cursor()
@@ -148,4 +146,4 @@ class TelaCadastroUsuario(QWidget):
             conn.commit()
             conn.close()
         except:
-            pass # Colunas já existem
+            pass

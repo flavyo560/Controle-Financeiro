@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QSizePolicy  # <--- ADICIONADO AQUI
 )
 from PyQt6.QtCore import QDate, pyqtSignal, Qt
-from database.db import conectar, calcular_saldo_banco
+from database import conectar, calcular_saldo_banco
 from datetime import datetime
 
 class TelaTransferencias(QWidget):
