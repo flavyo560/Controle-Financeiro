@@ -19,6 +19,8 @@ const meses = [
   { value: 11, label: "Novembro" }, { value: 12, label: "Dezembro" },
 ];
 
+interface CatRow { categoria_nome: string; valor: number }
+
 export default function RelatorioMensalPage() {
   const hoje = new Date();
   const [mes, setMes] = useState(hoje.getMonth() + 1);
@@ -30,24 +32,28 @@ export default function RelatorioMensalPage() {
     label: String(hoje.getFullYear() - i),
   }));
 
-  const colsDespesas: Column<{ categoria: string; valor: number }>[] = [
-    { key: "categoria", header: "Categoria" },
+  const colsDespesas: Column<CatRow>[] = [
+    { key: "categoria_nome", header: "Categoria" },
     { key: "valor", header: "Valor", render: (r) => formatCurrency(r.valor) },
   ];
 
-  const colsReceitas: Column<{ categoria: string; valor: number }>[] = [
-    { key: "categoria", header: "Categoria" },
+  const colsReceitas: Column<CatRow>[] = [
+    { key: "categoria_nome", header: "Categoria" },
     { key: "valor", header: "Valor", render: (r) => formatCurrency(r.valor) },
   ];
 
-  const pieData = relatorio?.despesas_por_categoria.map((d) => ({
-    name: d.categoria,
-    value: d.valor,
-  })) || [];
+  const despesas = relatorio?.despesas || [];
+  const receitas = relatorio?.receitas || [];
+  const totalDesp = despesas.reduce((s, d) => s + Number(d.valor), 0);
+
+  const pieData = despesas.map((d) => {
+    const pct = totalDesp > 0 ? (Number(d.valor) / totalDesp) * 100 : 0;
+    return { categoria: d.categoria_nome, valor: Number(d.valor), percentual: pct };
+  });
 
   const barData = [
-    { name: "Receitas", value: relatorio?.total_receitas || 0 },
-    { name: "Despesas", value: relatorio?.total_despesas || 0 },
+    { name: "Receitas", value: Number(relatorio?.total_receitas || 0) },
+    { name: "Despesas", value: Number(relatorio?.total_despesas || 0) },
   ];
 
   return (
@@ -55,19 +61,9 @@ export default function RelatorioMensalPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-xl font-semibold text-foreground">Relatório Mensal</h1>
         <div className="flex items-center gap-3">
-          <Select
-            options={meses}
-            value={mes}
-            onChange={(e) => setMes(Number(e.target.value))}
-          />
-          <Select
-            options={anos}
-            value={ano}
-            onChange={(e) => setAno(Number(e.target.value))}
-          />
-          <Button variant="secondary" onClick={() => exportarCSV("mensal", ano, mes)}>
-            Exportar CSV
-          </Button>
+          <Select options={meses} value={mes} onChange={(e) => setMes(Number(e.target.value))} />
+          <Select options={anos} value={ano} onChange={(e) => setAno(Number(e.target.value))} />
+          <Button variant="secondary" onClick={() => exportarCSV("mensal", ano, mes)}>Exportar CSV</Button>
         </div>
       </div>
 
@@ -77,25 +73,21 @@ export default function RelatorioMensalPage() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card title="Total Receitas">
-              <p className="text-2xl font-bold text-accent">{formatCurrency(relatorio.total_receitas)}</p>
+              <p className="text-2xl font-bold text-accent">{formatCurrency(Number(relatorio.total_receitas))}</p>
             </Card>
             <Card title="Total Despesas">
-              <p className="text-2xl font-bold text-danger">{formatCurrency(relatorio.total_despesas)}</p>
+              <p className="text-2xl font-bold text-danger">{formatCurrency(Number(relatorio.total_despesas))}</p>
             </Card>
             <Card title="Saldo">
-              <p className={`text-2xl font-bold ${relatorio.saldo >= 0 ? "text-accent" : "text-danger"}`}>
-                {formatCurrency(relatorio.saldo)}
+              <p className={`text-2xl font-bold ${Number(relatorio.saldo) >= 0 ? "text-accent" : "text-danger"}`}>
+                {formatCurrency(Number(relatorio.saldo))}
               </p>
             </Card>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card title="Despesas por Categoria">
-              {pieData.length > 0 ? (
-                <PieChart data={pieData} />
-              ) : (
-                <p className="text-muted text-sm">Sem dados</p>
-              )}
+              {pieData.length > 0 ? <PieChart data={pieData} /> : <p className="text-muted text-sm">Sem dados</p>}
             </Card>
             <Card title="Receitas vs Despesas">
               <BarChart data={barData} />
@@ -104,10 +96,10 @@ export default function RelatorioMensalPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card title="Despesas por Categoria">
-              <Table columns={colsDespesas} data={relatorio.despesas_por_categoria} emptyMessage="Nenhuma despesa no período" />
+              <Table columns={colsDespesas} data={despesas} emptyMessage="Nenhuma despesa no período" />
             </Card>
             <Card title="Receitas por Categoria">
-              <Table columns={colsReceitas} data={relatorio.receitas_por_categoria} emptyMessage="Nenhuma receita no período" />
+              <Table columns={colsReceitas} data={receitas} emptyMessage="Nenhuma receita no período" />
             </Card>
           </div>
         </>

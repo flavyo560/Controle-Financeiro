@@ -44,13 +44,14 @@ export default function RelatorioAnualPage() {
   ];
 
   const chartData = relatorio?.meses.map((m) => ({
-    name: nomeMeses[m.mes - 1],
-    receitas: m.receitas,
-    despesas: m.despesas,
+    mes: nomeMeses[Number(m.mes) - 1],
+    receitas: Number(m.receitas),
+    despesas: Number(m.despesas),
+    saldo: Number(m.saldo),
   })) || [];
 
-  const totalReceitas = relatorio?.meses.reduce((s, m) => s + m.receitas, 0) || 0;
-  const totalDespesas = relatorio?.meses.reduce((s, m) => s + m.despesas, 0) || 0;
+  const totalReceitas = relatorio?.meses.reduce((s, m) => s + Number(m.receitas), 0) || 0;
+  const totalDespesas = relatorio?.meses.reduce((s, m) => s + Number(m.despesas), 0) || 0;
 
   return (
     <div className="space-y-6">

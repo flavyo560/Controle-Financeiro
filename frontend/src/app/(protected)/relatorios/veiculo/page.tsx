@@ -38,30 +38,35 @@ export default function RelatorioVeiculoPage() {
         <p className="text-muted">Carregando relatório...</p>
       ) : relatorio ? (
         <>
-          <Card title={`${relatorio.veiculo.nome_identificador}${relatorio.veiculo.placa ? ` - ${relatorio.veiculo.placa}` : ""}`}>
-            {relatorio.veiculo.modelo && (
-              <p className="text-sm text-muted mb-2">Modelo: {relatorio.veiculo.modelo}</p>
-            )}
+          <Card title={relatorio.nome_identificador || "Veículo"}>
+            <p className="text-sm text-muted mb-2">
+              Abastecimentos: {relatorio.quantidade_abastecimentos} | Manutenções: {relatorio.quantidade_manutencoes}
+            </p>
           </Card>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card title="Custo Abastecimento">
-              <p className="text-2xl font-bold text-foreground">{formatCurrency(relatorio.custo_abastecimento)}</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(Number(relatorio.total_abastecimentos))}</p>
             </Card>
             <Card title="Custo Manutenção">
-              <p className="text-2xl font-bold text-foreground">{formatCurrency(relatorio.custo_manutencao)}</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(Number(relatorio.total_manutencoes))}</p>
             </Card>
             <Card title="Custo Total">
-              <p className="text-2xl font-bold text-danger">{formatCurrency(relatorio.custo_total)}</p>
+              <p className="text-2xl font-bold text-danger">{formatCurrency(Number(relatorio.total_geral))}</p>
             </Card>
             <Card title="Consumo Médio">
               <p className="text-2xl font-bold text-accent">
-                {relatorio.consumo_medio > 0 ? `${formatDecimal(relatorio.consumo_medio)} km/l` : "N/A"}
+                {Number(relatorio.consumo_medio) > 0 ? `${formatDecimal(Number(relatorio.consumo_medio))} km/l` : "N/A"}
               </p>
             </Card>
             <Card title="Custo por Km">
               <p className="text-2xl font-bold text-foreground">
-                {relatorio.custo_por_km > 0 ? `${formatCurrency(relatorio.custo_por_km)}/km` : "N/A"}
+                {Number(relatorio.custo_por_km) > 0 ? `${formatCurrency(Number(relatorio.custo_por_km))}/km` : "N/A"}
+              </p>
+            </Card>
+            <Card title="Total Km">
+              <p className="text-2xl font-bold text-foreground">
+                {Number(relatorio.total_km) > 0 ? `${formatDecimal(Number(relatorio.total_km))} km` : "N/A"}
               </p>
             </Card>
           </div>

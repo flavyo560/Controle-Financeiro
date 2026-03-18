@@ -501,8 +501,8 @@ export interface RelatorioMensal {
   total_receitas: number;
   total_despesas: number;
   saldo: number;
-  despesas_por_categoria: { categoria: string; valor: number }[];
-  receitas_por_categoria: { categoria: string; valor: number }[];
+  receitas: { categoria_id: number; categoria_nome: string; valor: number }[];
+  despesas: { categoria_id: number; categoria_nome: string; valor: number }[];
 }
 
 export interface RelatorioAnual {
@@ -513,15 +513,23 @@ export interface RelatorioAnual {
     despesas: number;
     saldo: number;
   }[];
+  total_receitas: number;
+  total_despesas: number;
+  saldo: number;
 }
 
 export interface RelatorioVeiculo {
-  veiculo: Veiculo;
-  custo_abastecimento: number;
-  custo_manutencao: number;
-  custo_total: number;
+  veiculo_id: number;
+  nome_identificador: string;
+  total_abastecimentos: number;
+  total_manutencoes: number;
+  total_geral: number;
   consumo_medio: number;
   custo_por_km: number;
+  total_km: number;
+  total_litros: number;
+  quantidade_abastecimentos: number;
+  quantidade_manutencoes: number;
 }
 
 // --- Orçamento Análise ---
