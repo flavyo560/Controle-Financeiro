@@ -14,6 +14,7 @@ interface PlanCardProps {
   ciclo: CicloCobranca;
   isCurrentPlan: boolean;
   onSelect: () => void;
+  loading?: boolean;
 }
 
 export default function PlanCard({
@@ -25,6 +26,7 @@ export default function PlanCard({
   ciclo,
   isCurrentPlan,
   onSelect,
+  loading,
 }: PlanCardProps) {
   const preco = ciclo === "mensal" ? precoMensal : precoAnual;
   const periodo = ciclo === "mensal" ? "/mês" : "/ano";
@@ -77,11 +79,11 @@ export default function PlanCard({
 
       <Button
         onClick={onSelect}
-        disabled={isCurrentPlan}
+        disabled={isCurrentPlan || loading}
         variant={isCurrentPlan ? "secondary" : "primary"}
         className="mt-6 w-full"
       >
-        {isCurrentPlan ? "Plano Atual" : "Assinar"}
+        {isCurrentPlan ? "Plano Atual" : loading ? "Aguarde..." : "Assinar"}
       </Button>
     </div>
   );

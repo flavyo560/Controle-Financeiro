@@ -30,18 +30,30 @@ const MODULOS_PLUS = [
 
 function PlanosContent() {
   const [ciclo, setCiclo] = useState<CicloCobranca>("mensal");
+  const [loading, setLoading] = useState(false);
   const { createCheckout } = useSubscription();
-  const { assinatura, planoEfetivo } = useSubscriptionStore();
+  const { assinatura, planoEfetivo, fetchSubscription } = useSubscriptionStore();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    fetchSubscription();
+  }, [fetchSubscription]);
 
   useEffect(() => {
     if (searchParams.get("sucesso") === "true") {
       toast.success("Assinatura ativada com sucesso!");
+      fetchSubscription();
     }
     if (searchParams.get("cancelado") === "true") {
       toast.error("Checkout cancelado. Você pode tentar novamente.");
     }
-  }, [searchParams]);
+  }, [searchParams, fetchSubscription]);
+
+  const handleSelect = async (plano: "simples" | "plus") => {
+    setLoading(true);
+    await createCheckout(plano, ciclo);
+    setLoading(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -70,6 +82,12 @@ function PlanosContent() {
         </button>
       </div>
 
+      {planoEfetivo === "admin" && (
+        <p className="text-center text-accent text-sm">
+          Você é administrador — acesso completo a todos os módulos.
+        </p>
+      )}
+
       <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
         <PlanCard
           nome="Simples"
@@ -78,8 +96,9 @@ function PlanosContent() {
           precoAnual={110}
           modulos={MODULOS_SIMPLES}
           ciclo={ciclo}
-          isCurrentPlan={planoEfetivo === "simples" && assinatura?.plano === "simples"}
-          onSelect={() => createCheckout("simples", ciclo)}
+          isCurrentPlan={planoEfetivo === "simples" || planoEfetivo === "admin"}
+          onSelect={() => handleSelect("simples")}
+          loading={loading}
         />
         <PlanCard
           nome="Plus"
@@ -88,8 +107,9 @@ function PlanosContent() {
           precoAnual={160}
           modulos={MODULOS_PLUS}
           ciclo={ciclo}
-          isCurrentPlan={planoEfetivo === "plus" && assinatura?.plano === "plus"}
-          onSelect={() => createCheckout("plus", ciclo)}
+          isCurrentPlan={planoEfetivo === "plus" || planoEfetivo === "admin"}
+          onSelect={() => handleSelect("plus")}
+          loading={loading}
         />
       </div>
     </div>
