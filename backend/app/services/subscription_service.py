@@ -132,7 +132,7 @@ class SubscriptionService:
                 any_sub.stripe_customer_id = customer_id
                 db.commit()
 
-        frontend_base = settings.CORS_ORIGINS.split(",")[0].strip()
+        frontend_base = settings.FRONTEND_URL or settings.CORS_ORIGINS.split(",")[0].strip()
         success_url = f"{frontend_base}/planos?sucesso=true"
         cancel_url = f"{frontend_base}/planos?cancelado=true"
 
@@ -169,7 +169,7 @@ class SubscriptionService:
             )
 
         try:
-            frontend_base = settings.CORS_ORIGINS.split(",")[0].strip()
+            frontend_base = settings.FRONTEND_URL or settings.CORS_ORIGINS.split(",")[0].strip()
             session = stripe.billing_portal.Session.create(
                 customer=sub.stripe_customer_id,
                 return_url=f"{frontend_base}/planos",
