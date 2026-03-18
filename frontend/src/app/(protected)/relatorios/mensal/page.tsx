@@ -5,8 +5,8 @@ import Card from "@/components/ui/Card";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import Table, { Column } from "@/components/ui/Table";
-import { PieChart } from "@/components/charts/PieChart";
-import { BarChart } from "@/components/charts/BarChart";
+import PieChart from "@/components/charts/PieChart";
+import BarChart from "@/components/charts/BarChart";
 import { useRelatorioMensal, exportarCSV } from "@/hooks/useRelatorios";
 import { formatCurrency } from "@/lib/formatters";
 

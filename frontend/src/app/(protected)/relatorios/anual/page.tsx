@@ -5,7 +5,7 @@ import Card from "@/components/ui/Card";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import Table, { Column } from "@/components/ui/Table";
-import { BarChart } from "@/components/charts/BarChart";
+import BarChart from "@/components/charts/BarChart";
 import { useRelatorioAnual, exportarCSV } from "@/hooks/useRelatorios";
 import { formatCurrency } from "@/lib/formatters";
 

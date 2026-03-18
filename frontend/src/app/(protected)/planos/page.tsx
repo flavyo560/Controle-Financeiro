@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import PlanCard from "@/components/subscription/PlanCard";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -28,7 +28,7 @@ const MODULOS_PLUS = [
   "Orçamento",
 ];
 
-export default function PlanosPage() {
+function PlanosContent() {
   const [ciclo, setCiclo] = useState<CicloCobranca>("mensal");
   const { createCheckout } = useSubscription();
   const { assinatura, planoEfetivo } = useSubscriptionStore();
@@ -47,7 +47,6 @@ export default function PlanosPage() {
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-foreground">Planos</h1>
 
-      {/* Toggle mensal/anual */}
       <div className="flex items-center justify-center gap-3">
         <button
           onClick={() => setCiclo("mensal")}
@@ -94,5 +93,13 @@ export default function PlanosPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function PlanosPage() {
+  return (
+    <Suspense fallback={<div className="text-muted">Carregando...</div>}>
+      <PlanosContent />
+    </Suspense>
   );
 }
