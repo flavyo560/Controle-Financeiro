@@ -11,7 +11,7 @@ import api from "@/lib/api";
 const cadastroSchema = z.object({
   nome: z.string().min(2, "O nome deve ter no mínimo 2 caracteres"),
   email: z.string().email("Informe um email válido"),
-  senha: z.string().min(8, "A senha deve ter no mínimo 8 caracteres"),
+  senha: z.string().min(4, "A senha deve ter no mínimo 4 caracteres"),
   cpf: z.string().optional(),
   telefone: z.string().optional(),
 });
@@ -105,7 +105,7 @@ export default function CadastroPage() {
           <Input
             label="Senha"
             type="password"
-            placeholder="Mínimo 8 caracteres"
+            placeholder="Mínimo 4 caracteres"
             value={form.senha}
             onChange={(e) => handleChange("senha", e.target.value)}
             error={errors.senha}
