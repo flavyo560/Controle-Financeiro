@@ -18,6 +18,7 @@ class UserResponse(BaseModel):
     email: str
     cpf: str | None = None
     telefone: str | None = None
+    perfil: str = "usuario"
 
     model_config = {"from_attributes": True}
 
@@ -35,7 +36,7 @@ class RegisterRequest(BaseModel):
 
     nome: str = Field(min_length=2, max_length=255)
     email: EmailStr
-    senha: str = Field(min_length=8)
+    senha: str = Field(min_length=4)
     cpf: str | None = None
     telefone: str | None = None
 
@@ -45,4 +46,4 @@ class UserUpdate(BaseModel):
 
     nome: str | None = None
     email: EmailStr | None = None
-    senha: str | None = Field(default=None, min_length=8)
+    senha: str | None = Field(default=None, min_length=4)
