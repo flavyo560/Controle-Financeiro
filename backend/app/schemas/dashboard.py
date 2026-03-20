@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
-
 from pydantic import BaseModel
 
 
@@ -16,7 +14,7 @@ class SaldoBanco(BaseModel):
 
     banco_id: int
     nome: str
-    saldo: Decimal
+    saldo: float
 
 
 # ---------------------------------------------------------------------------
@@ -28,9 +26,9 @@ class ResumoMensal(BaseModel):
 
     mes: int
     ano: int
-    total_receitas: Decimal
-    total_despesas: Decimal
-    saldo: Decimal
+    total_receitas: float
+    total_despesas: float
+    saldo: float
 
 
 # ---------------------------------------------------------------------------
@@ -42,7 +40,7 @@ class AlertaDespesa(BaseModel):
 
     despesa_id: int
     descricao: str | None = None
-    valor: Decimal
+    valor: float
     data_vencimento: str | None = None
     tipo: str  # "vencida" ou "vencendo"
 
@@ -56,8 +54,8 @@ class DistribuicaoCategoria(BaseModel):
 
     categoria_id: int
     categoria_nome: str
-    valor: Decimal
-    percentual: Decimal
+    valor: float
+    percentual: float
 
 
 # ---------------------------------------------------------------------------
@@ -68,8 +66,8 @@ class EvolucaoMensal(BaseModel):
     """Receitas e despesas de um mês para gráfico de barras."""
 
     mes: int
-    receitas: Decimal
-    despesas: Decimal
+    receitas: float
+    despesas: float
 
 
 # ---------------------------------------------------------------------------
@@ -79,7 +77,7 @@ class EvolucaoMensal(BaseModel):
 class DashboardResponse(BaseModel):
     """Resposta completa do dashboard."""
 
-    patrimonio: Decimal
+    patrimonio: float
     saldos_bancos: list[SaldoBanco]
     resumo_mensal: ResumoMensal
     alertas: list[AlertaDespesa]

@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # ---------------------------------------------------------------------------
@@ -77,13 +77,13 @@ class AbastecimentoResponse(BaseModel):
     id: int
     veiculo_id: int
     data: date
-    litros: Decimal | None = None
-    valor: Decimal
-    km: Decimal | None = None
+    litros: float | None = None
+    valor: float
+    km: float | None = None
     posto: str | None = None
     tipo: str | None = None
-    litros_gasolina: Decimal | None = None
-    litros_etanol: Decimal | None = None
+    litros_gasolina: float | None = None
+    litros_etanol: float | None = None
 
     model_config = {"from_attributes": True}
 
@@ -118,8 +118,8 @@ class ManutencaoResponse(BaseModel):
     veiculo_id: int
     data: date
     servico: str | None = None
-    valor: Decimal
-    km: Decimal | None = None
+    valor: float
+    km: float | None = None
 
     model_config = {"from_attributes": True}
 
@@ -133,7 +133,7 @@ class ConsumoMedioResponse(BaseModel):
     """Dados de consumo médio de um veículo."""
 
     veiculo_id: int
-    consumo_medio: Decimal = Decimal("0")
-    total_litros: Decimal = Decimal("0")
-    total_valor: Decimal = Decimal("0")
+    consumo_medio: float = 0
+    total_litros: float = 0
+    total_valor: float = 0
     total_abastecimentos: int = 0

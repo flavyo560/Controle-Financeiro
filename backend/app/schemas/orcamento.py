@@ -56,7 +56,7 @@ class ItemOrcamentoResponse(BaseModel):
     orcamento_id: int
     categoria_id: int
     mes: int
-    valor_planejado: Decimal
+    valor_planejado: float
     criado_em: datetime
     atualizado_em: datetime
 
@@ -73,8 +73,8 @@ class HistoricoOrcamentoResponse(BaseModel):
     id: int
     item_orcamento_id: int
     data_alteracao: datetime
-    valor_anterior: Decimal
-    valor_novo: Decimal
+    valor_anterior: float
+    valor_novo: float
     usuario_id: int | None = None
 
     model_config = {"from_attributes": True}
@@ -89,7 +89,7 @@ class RealizadoItem(BaseModel):
 
     categoria_id: int
     mes: int
-    valor_realizado: Decimal
+    valor_realizado: float
 
 
 class RealizadosResponse(BaseModel):
@@ -109,9 +109,9 @@ class PercentualItem(BaseModel):
 
     categoria_id: int
     mes: int
-    valor_planejado: Decimal
-    valor_realizado: Decimal
-    percentual: Decimal
+    valor_planejado: float
+    valor_realizado: float
+    percentual: float
 
 
 class PercentuaisResponse(BaseModel):
@@ -130,12 +130,12 @@ class TotalMensal(BaseModel):
     """Totais planejados e realizados de um mês."""
 
     mes: int
-    planejado_receitas: Decimal
-    planejado_despesas: Decimal
-    realizado_receitas: Decimal
-    realizado_despesas: Decimal
-    saldo_planejado: Decimal
-    saldo_realizado: Decimal
+    planejado_receitas: float
+    planejado_despesas: float
+    realizado_receitas: float
+    realizado_despesas: float
+    saldo_planejado: float
+    saldo_realizado: float
 
 
 class TotaisMensaisResponse(BaseModel):
@@ -154,10 +154,10 @@ class ProjecaoCategoria(BaseModel):
     """Projeção de gasto anual para uma categoria."""
 
     categoria_id: int
-    soma_realizada: Decimal
-    media_mensal: Decimal
-    projecao_anual: Decimal
-    planejado_anual: Decimal
+    soma_realizada: float
+    media_mensal: float
+    projecao_anual: float
+    planejado_anual: float
     risco: bool
 
 
@@ -179,7 +179,7 @@ class SugestaoItem(BaseModel):
 
     categoria_id: int
     tipo: str  # "reduzir_gasto" ou "realocar"
-    percentual_medio: Decimal
+    percentual_medio: float
     mensagem: str
 
 

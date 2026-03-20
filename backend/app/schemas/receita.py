@@ -31,7 +31,7 @@ class ReceitaResponse(BaseModel):
 
     id: int
     descricao: str | None = None
-    valor: Decimal
+    valor: float
     data: date
     categoria_id: int | None = None
     banco_id: int | None = None

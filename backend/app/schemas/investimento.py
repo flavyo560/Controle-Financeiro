@@ -39,14 +39,14 @@ class InvestimentoResponse(BaseModel):
     usuario_id: int
     nome: str
     tipo: str | None = None
-    valor_investido: Decimal
-    valor_atual: Decimal | None = None
+    valor_investido: float
+    valor_atual: float | None = None
     data: date
     ativo: bool
     categoria_id: int | None = None
     banco_id: int | None = None
     criado_em: datetime | None = None
-    rentabilidade: Decimal = Decimal("0")
+    rentabilidade: float = 0
 
     model_config = {"from_attributes": True}
 
@@ -69,7 +69,7 @@ class DividendoResponse(BaseModel):
 
     id: int
     investimento_id: int
-    valor: Decimal
+    valor: float
     data: date
 
     model_config = {"from_attributes": True}

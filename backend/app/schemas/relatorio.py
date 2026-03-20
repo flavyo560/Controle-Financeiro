@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
-
 from pydantic import BaseModel
 
 
@@ -16,7 +14,7 @@ class CategoriaTotal(BaseModel):
 
     categoria_id: int
     categoria_nome: str
-    valor: Decimal
+    valor: float
 
 
 class RelatorioMensalResponse(BaseModel):
@@ -26,9 +24,9 @@ class RelatorioMensalResponse(BaseModel):
     ano: int
     receitas: list[CategoriaTotal]
     despesas: list[CategoriaTotal]
-    total_receitas: Decimal
-    total_despesas: Decimal
-    saldo: Decimal
+    total_receitas: float
+    total_despesas: float
+    saldo: float
 
 
 # ---------------------------------------------------------------------------
@@ -39,9 +37,9 @@ class TotalMensalRelatorio(BaseModel):
     """Totais de receitas e despesas de um mês no relatório anual."""
 
     mes: int
-    receitas: Decimal
-    despesas: Decimal
-    saldo: Decimal
+    receitas: float
+    despesas: float
+    saldo: float
 
 
 class RelatorioAnualResponse(BaseModel):
@@ -49,9 +47,9 @@ class RelatorioAnualResponse(BaseModel):
 
     ano: int
     meses: list[TotalMensalRelatorio]
-    total_receitas: Decimal
-    total_despesas: Decimal
-    saldo: Decimal
+    total_receitas: float
+    total_despesas: float
+    saldo: float
 
 
 # ---------------------------------------------------------------------------
@@ -63,13 +61,13 @@ class RelatorioVeiculoResponse(BaseModel):
 
     veiculo_id: int
     nome_identificador: str
-    total_abastecimentos: Decimal
-    total_manutencoes: Decimal
-    total_geral: Decimal
-    consumo_medio: Decimal
-    custo_por_km: Decimal
-    total_km: Decimal
-    total_litros: Decimal
+    total_abastecimentos: float
+    total_manutencoes: float
+    total_geral: float
+    consumo_medio: float
+    custo_por_km: float
+    total_km: float
+    total_litros: float
     quantidade_abastecimentos: int
     quantidade_manutencoes: int
 
@@ -83,9 +81,9 @@ class ItemOrcamentoRelatorio(BaseModel):
 
     categoria_id: int
     categoria_nome: str
-    valor_planejado: Decimal
-    valor_realizado: Decimal
-    percentual: Decimal
+    valor_planejado: float
+    valor_realizado: float
+    percentual: float
 
 
 class RelatorioOrcamentoMensalResponse(BaseModel):
@@ -94,8 +92,8 @@ class RelatorioOrcamentoMensalResponse(BaseModel):
     mes: int
     ano: int
     itens: list[ItemOrcamentoRelatorio]
-    total_planejado: Decimal
-    total_realizado: Decimal
+    total_planejado: float
+    total_realizado: float
 
 
 # ---------------------------------------------------------------------------
@@ -106,9 +104,9 @@ class TotalMensalOrcamento(BaseModel):
     """Totais de orçamento de um mês."""
 
     mes: int
-    planejado: Decimal
-    realizado: Decimal
-    percentual: Decimal
+    planejado: float
+    realizado: float
+    percentual: float
 
 
 class RelatorioOrcamentoAnualResponse(BaseModel):
@@ -116,5 +114,5 @@ class RelatorioOrcamentoAnualResponse(BaseModel):
 
     ano: int
     meses: list[TotalMensalOrcamento]
-    total_planejado: Decimal
-    total_realizado: Decimal
+    total_planejado: float
+    total_realizado: float

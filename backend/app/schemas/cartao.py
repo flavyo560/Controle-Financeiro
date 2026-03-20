@@ -36,12 +36,12 @@ class CartaoResponse(BaseModel):
     id: int
     nome: str
     bandeira: str | None = None
-    limite_total: Decimal
+    limite_total: float
     dia_fechamento: int
     dia_vencimento: int
     status: bool
-    limite_utilizado: Decimal = Decimal("0")
-    limite_disponivel: Decimal = Decimal("0")
+    limite_utilizado: float = 0
+    limite_disponivel: float = 0
 
     model_config = {"from_attributes": True}
 
@@ -75,7 +75,7 @@ class CompraCartaoResponse(BaseModel):
     id: int
     cartao_id: int
     descricao: str
-    valor: Decimal
+    valor: float
     data_compra: date
     categoria_id: int | None = None
     mes_fatura: str
@@ -95,9 +95,9 @@ class FaturaResponse(BaseModel):
     """Detalhes de uma fatura mensal do cartão."""
 
     compras: list[CompraCartaoResponse]
-    valor_total: Decimal
-    valor_pago: Decimal
-    saldo_devedor: Decimal
+    valor_total: float
+    valor_pago: float
+    saldo_devedor: float
     data_vencimento: date
     status: str  # pendente, paga_parcial, paga_total, vencida
 
@@ -120,7 +120,7 @@ class PagamentoFaturaResponse(BaseModel):
     id: int
     cartao_id: int
     mes_fatura: str
-    valor_pago: Decimal
+    valor_pago: float
     data_pagamento: date
     banco_id: int
     despesa_id: int | None = None

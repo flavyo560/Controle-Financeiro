@@ -32,7 +32,7 @@ class TransferenciaResponse(BaseModel):
     id: int
     banco_origem_id: int | None = None
     banco_destino_id: int | None = None
-    valor: Decimal
+    valor: float
     data: date
     descricao: str | None = None
 

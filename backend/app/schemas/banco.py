@@ -26,10 +26,10 @@ class BancoResponse(BaseModel):
 
     id: int
     nome: str
-    saldo_inicial: Decimal
+    saldo_inicial: float
     ativo: bool
     criado_em: datetime | None = None
-    saldo_calculado: Decimal = Decimal("0")
+    saldo_calculado: float = 0
 
     model_config = {"from_attributes": True}
 
@@ -39,9 +39,9 @@ class SaldoDetalhadoResponse(BaseModel):
 
     banco_id: int
     nome: str
-    saldo_inicial: Decimal
-    total_receitas: Decimal
-    total_despesas_pagas: Decimal
-    total_transferencias_entrada: Decimal
-    total_transferencias_saida: Decimal
-    saldo_calculado: Decimal
+    saldo_inicial: float
+    total_receitas: float
+    total_despesas_pagas: float
+    total_transferencias_entrada: float
+    total_transferencias_saida: float
+    saldo_calculado: float

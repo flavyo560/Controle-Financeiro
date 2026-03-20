@@ -37,7 +37,7 @@ class DespesaResponse(BaseModel):
 
     id: int
     descricao: str | None = None
-    valor: Decimal
+    valor: float
     data: date
     categoria_id: int | None = None
     banco_id: int | None = None
@@ -85,7 +85,7 @@ class DespesaParceladaResponse(BaseModel):
 
     id: int
     descricao: str
-    valor_total: Decimal
+    valor_total: float
     numero_parcelas: int
     data_primeira_parcela: date
     categoria_id: int | None = None
@@ -127,7 +127,7 @@ class DespesaRecorrenteResponse(BaseModel):
 
     id: int
     descricao: str
-    valor: Decimal
+    valor: float
     dia_mes: int
     categoria_id: int | None = None
     banco_id: int | None = None
