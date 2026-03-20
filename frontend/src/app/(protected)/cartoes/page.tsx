@@ -15,12 +15,14 @@ import {
   useDesativarCartao,
   useDeleteCartao,
 } from "@/hooks/useCartoes";
+import { useBancos } from "@/hooks/useBancos";
 import { formatCurrency } from "@/lib/formatters";
 import type { Cartao } from "@/types";
 import Link from "next/link";
 
 export default function CartoesPage() {
   const { data: cartoes, isLoading } = useCartoes();
+  const { data: bancos } = useBancos();
   const createCartao = useCreateCartao();
   const updateCartao = useUpdateCartao();
   const desativarCartao = useDesativarCartao();
@@ -98,6 +100,10 @@ export default function CartoesPage() {
     return "accent";
   };
 
+  const isVinculado = (cartaoId: number) => {
+    return bancos?.some((b) => b.cartao_id === cartaoId) ?? false;
+  };
+
   const columns: Column<Cartao>[] = [
     { key: "nome", header: "Nome" },
     { key: "bandeira", header: "Bandeira", render: (row) => row.bandeira || "—" },
@@ -137,9 +143,14 @@ export default function CartoesPage() {
       key: "status",
       header: "Status",
       render: (row) => (
-        <Badge variant={row.status ? "success" : "muted"}>
-          {row.status ? "Ativo" : "Inativo"}
-        </Badge>
+        <div className="flex gap-1">
+          <Badge variant={row.status ? "success" : "muted"}>
+            {row.status ? "Ativo" : "Inativo"}
+          </Badge>
+          {isVinculado(row.id) && (
+            <Badge variant="info">Vinculado</Badge>
+          )}
+        </div>
       ),
     },
     {
@@ -154,7 +165,9 @@ export default function CartoesPage() {
           {row.status && (
             <Button size="sm" variant="secondary" onClick={() => handleDesativar(row.id)}>Desativar</Button>
           )}
-          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)}>Excluir</Button>
+          {!isVinculado(row.id) && (
+            <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)}>Excluir</Button>
+          )}
         </div>
       ),
     },

@@ -20,6 +20,8 @@ class Banco(Base):
     nome = Column(String(255), nullable=False)
     saldo_inicial = Column(Numeric(15, 2), default=0)
     ativo = Column(Boolean, default=True)
+    tipo = Column(String(10), nullable=False, server_default="debito")
+    cartao_id = Column(Integer, ForeignKey("cartoes.id"), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
@@ -28,6 +30,7 @@ class Banco(Base):
 
     # Relationships
     usuario = relationship("Usuario", back_populates="bancos")
+    cartao = relationship("Cartao", foreign_keys=[cartao_id])
     receitas = relationship("Receita", back_populates="banco")
     despesas = relationship("Despesa", back_populates="banco")
     despesas_parceladas = relationship("DespesaParcelada", back_populates="banco")

@@ -24,9 +24,13 @@ export function useCreateBanco() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bancos"] });
+      queryClient.invalidateQueries({ queryKey: ["cartoes"] });
       toast.success("Banco criado com sucesso");
     },
-    onError: () => toast.error("Erro ao criar banco"),
+    onError: (error: any) => {
+      const msg = error?.response?.data?.detail || "Erro ao criar banco";
+      toast.error(msg);
+    },
   });
 }
 
@@ -39,9 +43,13 @@ export function useUpdateBanco() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bancos"] });
+      queryClient.invalidateQueries({ queryKey: ["cartoes"] });
       toast.success("Banco atualizado com sucesso");
     },
-    onError: () => toast.error("Erro ao atualizar banco"),
+    onError: (error: any) => {
+      const msg = error?.response?.data?.detail || "Erro ao atualizar banco";
+      toast.error(msg);
+    },
   });
 }
 

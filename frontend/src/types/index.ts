@@ -26,6 +26,8 @@ export interface Banco {
   nome: string;
   saldo_inicial: number;
   ativo: boolean;
+  tipo: "debito" | "credito";
+  cartao_id: number | null;
   criado_em: string;
   saldo_calculado?: number;
 }
@@ -33,6 +35,11 @@ export interface Banco {
 export interface BancoCreate {
   nome: string;
   saldo_inicial?: number;
+  tipo?: "debito" | "credito";
+  limite_total?: number;
+  dia_fechamento?: number;
+  dia_vencimento?: number;
+  bandeira?: string;
 }
 
 // --- Categoria ---

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_current_user, get_db
 from app.middleware.plano import require_plus
 from app.models.cartao import Cartao
+from app.models.banco import Banco
 from app.schemas.cartao import (
     CartaoCreate,
     CartaoResponse,
@@ -147,9 +148,18 @@ def excluir_cartao(
     current_user: Annotated[dict, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> None:
-    """Exclui um cartão de crédito."""
+    """Exclui um cartão de crédito. Bloqueia se vinculado a um banco."""
     usuario_id = current_user["user_id"]
     cartao = _get_cartao_or_404(db, cartao_id, usuario_id)
+
+    # Verificar se cartão está vinculado a um banco
+    banco_vinculado = db.query(Banco).filter(Banco.cartao_id == cartao.id).first()
+    if banco_vinculado:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Este cartão está vinculado a um banco. Exclua ou altere o tipo do banco para remover o vínculo.",
+        )
+
     db.delete(cartao)
     db.commit()
 

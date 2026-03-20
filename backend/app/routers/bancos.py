@@ -18,6 +18,7 @@ from app.schemas.banco import (
     BancoUpdate,
     SaldoDetalhadoResponse,
 )
+from app.services.banco_service import criar_banco_com_cartao, atualizar_banco_com_tipo
 
 router = APIRouter()
 
@@ -73,16 +74,9 @@ def criar_banco(
     current_user: Annotated[dict, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> BancoResponse:
-    """Cria um novo banco para o usuário."""
+    """Cria um novo banco para o usuário. Se tipo=credito, cria cartão vinculado."""
     usuario_id = current_user["user_id"]
-    banco = Banco(
-        usuario_id=usuario_id,
-        nome=data.nome,
-        saldo_inicial=data.saldo_inicial,
-    )
-    db.add(banco)
-    db.commit()
-    db.refresh(banco)
+    banco = criar_banco_com_cartao(db, usuario_id, data)
     resp = BancoResponse.model_validate(banco)
     resp.saldo_calculado = banco.saldo_inicial or Decimal("0")
     return resp
@@ -95,7 +89,7 @@ def atualizar_banco(
     current_user: Annotated[dict, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> BancoResponse:
-    """Atualiza dados de um banco do usuário."""
+    """Atualiza dados de um banco do usuário. Gerencia mudanças de tipo."""
     usuario_id = current_user["user_id"]
     banco = (
         db.query(Banco)
@@ -105,12 +99,7 @@ def atualizar_banco(
     if not banco:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Banco não encontrado")
 
-    update_data = data.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(banco, field, value)
-
-    db.commit()
-    db.refresh(banco)
+    banco = atualizar_banco_com_tipo(db, banco, data, usuario_id)
     resp = BancoResponse.model_validate(banco)
     resp.saldo_calculado = _calcular_saldo(db, banco, usuario_id)
     return resp

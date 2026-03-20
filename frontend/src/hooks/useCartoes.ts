@@ -90,7 +90,10 @@ export function useDeleteCartao() {
       queryClient.invalidateQueries({ queryKey: ["cartoes"] });
       toast.success("Cartão excluído com sucesso");
     },
-    onError: () => toast.error("Erro ao excluir cartão"),
+    onError: (error: any) => {
+      const msg = error?.response?.data?.detail || "Erro ao excluir cartão";
+      toast.error(msg);
+    },
   });
 }
 
