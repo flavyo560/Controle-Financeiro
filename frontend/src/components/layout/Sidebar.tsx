@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import UpgradeModal from "@/components/subscription/UpgradeModal";
@@ -30,10 +31,17 @@ export default function Sidebar() {
   const [open, setOpen] = useState(false);
   const [upgradeModule, setUpgradeModule] = useState<string | null>(null);
   const pathname = usePathname();
-  const { user } = useAuthStore();
+  const router = useRouter();
+  const { user, clearAuth } = useAuthStore();
   const { hasAccess } = useSubscriptionStore();
 
   const isAdmin = user?.perfil === "admin";
+
+  function handleLogout() {
+    clearAuth();
+    setOpen(false);
+    router.push("/login");
+  }
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -137,6 +145,14 @@ export default function Sidebar() {
               Admin
             </Link>
           )}
+          <div className="border-t border-border mt-2 pt-2">
+            <button
+              onClick={handleLogout}
+              className="w-full px-4 py-2.5 rounded-lg text-sm transition-colors text-red-400 hover:bg-red-400/10 text-left"
+            >
+              Sair
+            </button>
+          </div>
         </nav>
       </aside>
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import UpgradeModal from "@/components/subscription/UpgradeModal";
@@ -28,11 +29,17 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user } = useAuthStore();
+  const router = useRouter();
+  const { user, clearAuth } = useAuthStore();
   const { hasAccess } = useSubscriptionStore();
   const [upgradeModule, setUpgradeModule] = useState<string | null>(null);
 
   const isAdmin = user?.perfil === "admin";
+
+  function handleLogout() {
+    clearAuth();
+    router.push("/login");
+  }
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -102,6 +109,12 @@ export default function Navbar() {
                 Admin
               </Link>
             )}
+            <button
+              onClick={handleLogout}
+              className="px-3 py-2 text-sm shrink-0 transition-colors text-red-400 hover:text-red-300 ml-auto"
+            >
+              Sair
+            </button>
           </div>
         </div>
       </nav>
