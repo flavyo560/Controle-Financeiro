@@ -10,7 +10,7 @@ import type { PlanoTipo, CicloCobranca } from "@/types";
 export default function AdminUsuariosPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { users, isLoading, grantPlan, revokeSubscription, extendTrial } = useAdmin();
+  const { users, isLoading, grantPlan, revokeSubscription, extendTrial, resetPassword } = useAdmin();
   const [trialDias, setTrialDias] = useState<Record<number, number>>({});
 
   useEffect(() => {
@@ -33,6 +33,15 @@ export default function AdminUsuariosPage() {
   const handleExtendTrial = (userId: number) => {
     const dias = trialDias[userId] || 7;
     extendTrial.mutate({ userId, dias });
+  };
+
+  const handleResetPassword = (userId: number, nome: string) => {
+    const novaSenha = prompt(`Digite a nova senha para ${nome} (mínimo 4 caracteres):`);
+    if (novaSenha && novaSenha.length >= 4) {
+      resetPassword.mutate({ userId, novaSenha });
+    } else if (novaSenha) {
+      alert("A senha deve ter no mínimo 4 caracteres.");
+    }
   };
 
   return (
@@ -92,6 +101,9 @@ export default function AdminUsuariosPage() {
                         Revogar
                       </Button>
                     )}
+                    <Button size="sm" variant="ghost" onClick={() => handleResetPassword(u.id, u.nome)}>
+                      Resetar Senha
+                    </Button>
                     <div className="flex items-center gap-1">
                       <input
                         type="number"

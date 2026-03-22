@@ -55,11 +55,22 @@ export function useAdmin() {
     onError: () => toast.error("Erro ao estender trial"),
   });
 
+  const resetPassword = useMutation({
+    mutationFn: async ({ userId, novaSenha }: { userId: number; novaSenha: string }) => {
+      await api.post(`/admin/usuarios/${userId}/resetar-senha`, { nova_senha: novaSenha });
+    },
+    onSuccess: () => {
+      toast.success("Senha resetada com sucesso");
+    },
+    onError: () => toast.error("Erro ao resetar senha"),
+  });
+
   return {
     users: usersQuery.data ?? [],
     isLoading: usersQuery.isLoading,
     grantPlan,
     revokeSubscription,
     extendTrial,
+    resetPassword,
   };
 }

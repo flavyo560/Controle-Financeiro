@@ -11,6 +11,7 @@ from app.schemas.admin import (
     AdminUsuarioResponse,
     ConcederPlanoRequest,
     EstenderTrialRequest,
+    ResetarSenhaRequest,
 )
 from app.services.admin_service import AdminService
 
@@ -72,3 +73,20 @@ def estender_trial(
     admin_id = current_user["user_id"]
     AdminService.extend_trial(db, user_id, data.dias, admin_id)
     return {"detail": "Trial atualizado"}
+
+
+@router.post("/usuarios/{user_id}/resetar-senha")
+def resetar_senha(
+    user_id: int,
+    data: ResetarSenhaRequest,
+    current_user: Annotated[dict, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    """Reseta a senha de um usuário (admin only)."""
+    from app.services.auth_service import _hash_bcrypt, get_user_by_id
+
+    user = get_user_by_id(db, user_id)
+    user.senha_hash_bcrypt = _hash_bcrypt(data.nova_senha)
+    user.senha_hash = None
+    db.commit()
+    return {"detail": f"Senha do usuário {user.nome} resetada com sucesso"}

@@ -103,6 +103,13 @@ export default function LoginPage() {
               Cadastre-se
             </a>
           </p>
+
+          <p className="text-center text-sm text-muted mt-2">
+            Esqueceu sua senha?{" "}
+            <a href="/esqueci-senha" className="text-accent hover:underline">
+              Clique aqui
+            </a>
+          </p>
         </form>
       </div>
     </div>

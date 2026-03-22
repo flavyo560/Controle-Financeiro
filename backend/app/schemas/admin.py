@@ -34,3 +34,9 @@ class EstenderTrialRequest(BaseModel):
     """Corpo da requisição de extensão de trial."""
 
     dias: int = Field(gt=0)
+
+
+class ResetarSenhaRequest(BaseModel):
+    """Corpo da requisição de reset de senha pelo admin."""
+
+    nova_senha: str = Field(min_length=4)
