@@ -47,3 +47,16 @@ class UserUpdate(BaseModel):
     nome: str | None = None
     email: EmailStr | None = None
     senha: str | None = Field(default=None, min_length=4)
+
+
+class EsqueciSenhaRequest(BaseModel):
+    """Corpo da requisição de esqueci minha senha."""
+
+    email: EmailStr
+
+
+class ResetarSenhaRequest(BaseModel):
+    """Corpo da requisição de redefinição de senha."""
+
+    token: str
+    nova_senha: str = Field(min_length=4)

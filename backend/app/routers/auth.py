@@ -7,9 +7,11 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
 from app.schemas.auth import (
+    EsqueciSenhaRequest,
     LoginRequest,
     LoginResponse,
     RegisterRequest,
+    ResetarSenhaRequest,
     UserResponse,
     UserUpdate,
 )
@@ -60,3 +62,23 @@ def update_me(
     """Atualiza perfil do usuário autenticado."""
     user = auth_service.update_user(db, current_user["user_id"], data)
     return UserResponse.model_validate(user)
+
+
+@router.post("/esqueci-senha")
+async def esqueci_senha(
+    data: EsqueciSenhaRequest,
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    """Envia email com link de redefinição de senha."""
+    await auth_service.request_password_reset(db, data.email)
+    return {"message": "Se o email estiver cadastrado, você receberá um link de redefinição."}
+
+
+@router.post("/resetar-senha")
+def resetar_senha(
+    data: ResetarSenhaRequest,
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    """Redefine a senha usando token recebido por email."""
+    auth_service.reset_password(db, data.token, data.nova_senha)
+    return {"message": "Senha redefinida com sucesso!"}

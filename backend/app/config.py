@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     STRIPE_PRICE_PLUS_MENSAL: str = ""
     STRIPE_PRICE_PLUS_ANUAL: str = ""
 
+    # Resend (email)
+    RESEND_API_KEY: str = ""
+
     # App
     APP_NAME: str = "Controle Financeiro API"
     APP_VERSION: str = "1.0.0"

@@ -17,6 +17,38 @@ from app.schemas.auth import LoginRequest, RegisterRequest, UserUpdate
 logger = logging.getLogger(__name__)
 
 
+def _create_reset_token(user: Usuario) -> str:
+    """Gera JWT de reset de senha com expiração de 1 hora."""
+    expire = datetime.now(timezone.utc) + timedelta(hours=1)
+    payload = {
+        "user_id": user.id,
+        "email": user.email,
+        "tipo": "reset_senha",
+        "exp": expire,
+    }
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+
+
+def verify_reset_token(token: str) -> dict:
+    """Valida JWT de reset de senha.
+
+    Returns:
+        Payload do token.
+
+    Raises:
+        HTTPException 400: token inválido ou expirado.
+    """
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        if payload.get("tipo") != "reset_senha":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token inválido")
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token expirado")
+    except jwt.JWTError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token inválido")
+
+
 def _hash_bcrypt(password: str) -> str:
     """Gera hash bcrypt com 12 rounds."""
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
@@ -179,3 +211,35 @@ def update_user(db: Session, user_id: int, data: UserUpdate) -> Usuario:
     db.commit()
     db.refresh(user)
     return user
+
+
+async def request_password_reset(db: Session, email: str) -> bool:
+    """Gera token de reset e envia email.
+
+    Retorna True sempre (não revela se email existe).
+    """
+    from app.services.email_service import enviar_email_reset_senha
+
+    user = db.query(Usuario).filter(Usuario.email == email).first()
+    if user is None:
+        # Não revelar que email não existe
+        return True
+
+    token = _create_reset_token(user)
+    await enviar_email_reset_senha(user.email, user.nome, token)
+    return True
+
+
+def reset_password(db: Session, token: str, nova_senha: str) -> bool:
+    """Valida token e redefine a senha do usuário."""
+    payload = verify_reset_token(token)
+    user = db.query(Usuario).filter(Usuario.id == payload["user_id"]).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Usuário não encontrado",
+        )
+    user.senha_hash_bcrypt = _hash_bcrypt(nova_senha)
+    user.senha_hash = None
+    db.commit()
+    return True
