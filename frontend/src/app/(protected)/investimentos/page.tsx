@@ -7,6 +7,7 @@ import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import Table, { Column } from "@/components/ui/Table";
 import Badge from "@/components/ui/Badge";
+import Select from "@/components/ui/Select";
 import PieChart from "@/components/charts/PieChart";
 import LineChart from "@/components/charts/LineChart";
 import {
@@ -19,6 +20,8 @@ import {
   useCreateDividendo,
   useDeleteDividendo,
 } from "@/hooks/useInvestimentos";
+import { useBancos } from "@/hooks/useBancos";
+import { useCategorias } from "@/hooks/useCategorias";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/formatters";
 import type { Investimento, Dividendo } from "@/types";
 
@@ -31,6 +34,18 @@ export default function InvestimentosPage() {
   const createDiv = useCreateDividendo();
   const deleteDiv = useDeleteDividendo();
 
+  const { data: bancos } = useBancos();
+  const { data: categorias } = useCategorias("despesa");
+
+  const bancoFormOptions = [
+    { value: "", label: "Selecione..." },
+    ...(bancos?.map((b) => ({ value: String(b.id), label: b.nome })) ?? []),
+  ];
+  const categoriaFormOptions = [
+    { value: "", label: "Selecione..." },
+    ...(categorias?.map((c) => ({ value: String(c.id), label: c.nome })) ?? []),
+  ];
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Investimento | null>(null);
   const [nome, setNome] = useState("");
@@ -38,6 +53,8 @@ export default function InvestimentosPage() {
   const [valorInvestido, setValorInvestido] = useState("");
   const [valorAtual, setValorAtual] = useState("");
   const [data, setData] = useState("");
+  const [bancoId, setBancoId] = useState("");
+  const [categoriaId, setCategoriaId] = useState("");
 
   // Dividendos
   const [divModalOpen, setDivModalOpen] = useState(false);
@@ -52,7 +69,7 @@ export default function InvestimentosPage() {
   const [valorEditId, setValorEditId] = useState<number | null>(null);
 
   const resetForm = () => {
-    setNome(""); setTipo(""); setValorInvestido(""); setValorAtual(""); setData("");
+    setNome(""); setTipo(""); setValorInvestido(""); setValorAtual(""); setData(""); setBancoId(""); setCategoriaId("");
   };
 
   const openCreate = () => { setEditing(null); resetForm(); setModalOpen(true); };
@@ -64,6 +81,8 @@ export default function InvestimentosPage() {
     setValorInvestido(String(inv.valor_investido));
     setValorAtual(String(inv.valor_atual ?? ""));
     setData(inv.data);
+    setBancoId(inv.banco_id ? String(inv.banco_id) : "");
+    setCategoriaId(inv.categoria_id ? String(inv.categoria_id) : "");
     setModalOpen(true);
   };
 
@@ -75,6 +94,8 @@ export default function InvestimentosPage() {
       valor_investido: Number(valorInvestido),
       valor_atual: valorAtual ? Number(valorAtual) : undefined,
       data,
+      banco_id: bancoId ? Number(bancoId) : undefined,
+      categoria_id: categoriaId ? Number(categoriaId) : undefined,
     };
     if (editing) {
       updateInv.mutate({ id: editing.id, ...payload }, { onSuccess: () => setModalOpen(false) });
@@ -216,6 +237,8 @@ export default function InvestimentosPage() {
           <Input label="Valor Investido" type="number" step="0.01" value={valorInvestido} onChange={(e) => setValorInvestido(e.target.value)} required />
           <Input label="Valor Atual" type="number" step="0.01" value={valorAtual} onChange={(e) => setValorAtual(e.target.value)} />
           <Input label="Data" type="date" value={data} onChange={(e) => setData(e.target.value)} required />
+          <Select label="Banco" options={bancoFormOptions} value={bancoId} onChange={(e) => setBancoId(e.target.value)} />
+          <Select label="Categoria" options={categoriaFormOptions} value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setModalOpen(false)}>Cancelar</Button>
             <Button type="submit" disabled={createInv.isPending || updateInv.isPending}>

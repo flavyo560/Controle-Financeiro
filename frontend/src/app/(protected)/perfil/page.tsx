@@ -61,8 +61,8 @@ export default function PerfilPage() {
   };
 
   const handleChangePassword = () => {
-    if (!novaSenha || novaSenha.length < 8) {
-      toast.error("A nova senha deve ter pelo menos 8 caracteres");
+    if (!novaSenha || novaSenha.length < 4) {
+      toast.error("A nova senha deve ter pelo menos 4 caracteres");
       return;
     }
     if (novaSenha !== confirmarSenha) {
