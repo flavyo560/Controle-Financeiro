@@ -160,9 +160,20 @@ export default function VeiculoDetalhePage() {
     }
   };
 
+  const getLitrosDisplay = (row: Abastecimento) => {
+    if (row.litros_gasolina || row.litros_etanol) {
+      const gas = Number(row.litros_gasolina || 0);
+      const eta = Number(row.litros_etanol || 0);
+      const total = gas + eta;
+      if (total > 0) return formatDecimal(total);
+    }
+    if (row.litros) return formatDecimal(row.litros);
+    return "—";
+  };
+
   const abastColumns: Column<Abastecimento>[] = [
     { key: "data", header: "Data", render: (row) => formatDate(row.data) },
-    { key: "litros", header: "Litros", render: (row) => row.litros ? formatDecimal(row.litros) : "—" },
+    { key: "litros", header: "Litros", render: (row) => getLitrosDisplay(row) },
     { key: "valor", header: "Valor", render: (row) => formatCurrency(row.valor) },
     { key: "km", header: "Km", render: (row) => row.km ? formatDecimal(row.km, 0) : "—" },
     { key: "posto", header: "Posto", render: (row) => row.posto || "—" },
@@ -243,8 +254,8 @@ export default function VeiculoDetalhePage() {
           <Input label="Valor (R$)" type="number" step="0.01" value={abastValor} onChange={(e) => setAbastValor(e.target.value)} required />
           <Input label="Km" type="number" value={abastKm} onChange={(e) => setAbastKm(e.target.value)} />
           <Input label="Posto" value={abastPosto} onChange={(e) => setAbastPosto(e.target.value)} />
-          {!editingAbast && <Select label="Banco" options={bancoOptions} value={abastBancoId} onChange={(e) => setAbastBancoId(e.target.value)} />}
-          {!editingAbast && <Select label="Categoria" options={categoriaOptions} value={abastCategoriaId} onChange={(e) => setAbastCategoriaId(e.target.value)} />}
+          <Select label="Banco" options={bancoOptions} value={abastBancoId} onChange={(e) => setAbastBancoId(e.target.value)} />
+          <Select label="Categoria" options={categoriaOptions} value={abastCategoriaId} onChange={(e) => setAbastCategoriaId(e.target.value)} />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => { setAbastModal(false); resetAbastForm(); }}>Cancelar</Button>
             <Button type="submit" disabled={createAbast.isPending || updateAbast.isPending}>{editingAbast ? "Salvar" : "Registrar"}</Button>
@@ -259,8 +270,8 @@ export default function VeiculoDetalhePage() {
           <Input label="Serviço" value={manutServico} onChange={(e) => setManutServico(e.target.value)} />
           <Input label="Valor (R$)" type="number" step="0.01" value={manutValor} onChange={(e) => setManutValor(e.target.value)} required />
           <Input label="Km" type="number" value={manutKm} onChange={(e) => setManutKm(e.target.value)} />
-          {!editingManut && <Select label="Banco" options={bancoOptions} value={manutBancoId} onChange={(e) => setManutBancoId(e.target.value)} />}
-          {!editingManut && <Select label="Categoria" options={categoriaOptions} value={manutCategoriaId} onChange={(e) => setManutCategoriaId(e.target.value)} />}
+          <Select label="Banco" options={bancoOptions} value={manutBancoId} onChange={(e) => setManutBancoId(e.target.value)} />
+          <Select label="Categoria" options={categoriaOptions} value={manutCategoriaId} onChange={(e) => setManutCategoriaId(e.target.value)} />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => { setManutModal(false); resetManutForm(); }}>Cancelar</Button>
             <Button type="submit" disabled={createManut.isPending || updateManut.isPending}>{editingManut ? "Salvar" : "Registrar"}</Button>

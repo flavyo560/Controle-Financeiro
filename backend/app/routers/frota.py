@@ -167,6 +167,13 @@ def registrar_abastecimento(
         litros_gasolina=data.litros_gasolina,
         litros_etanol=data.litros_etanol,
     )
+    # Auto-calcular litros totais para Mistura
+    if data.litros_gasolina or data.litros_etanol:
+        gas = data.litros_gasolina or Decimal("0")
+        eta = data.litros_etanol or Decimal("0")
+        total = gas + eta
+        if total > 0:
+            abastecimento.litros = total
     db.add(abastecimento)
 
     # Criar despesa correspondente
@@ -370,20 +377,26 @@ def excluir_manutencao(
 # ---------------------------------------------------------------------------
 
 
+def _get_litros_efetivos(a: Abastecimento) -> Decimal:
+    """Retorna litros totais de um abastecimento, somando gasolina+etanol para Mistura."""
+    if a.litros_gasolina is not None or a.litros_etanol is not None:
+        gas = Decimal(str(a.litros_gasolina)) if a.litros_gasolina else Decimal("0")
+        eta = Decimal(str(a.litros_etanol)) if a.litros_etanol else Decimal("0")
+        total = gas + eta
+        if total > 0:
+            return total
+    if a.litros is not None:
+        return Decimal(str(a.litros))
+    return Decimal("0")
+
+
 @router.get("/veiculos/{veiculo_id}/consumo", response_model=ConsumoMedioResponse)
 def consumo_medio(
     veiculo_id: int,
     current_user: Annotated[dict, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> ConsumoMedioResponse:
-    """Calcula consumo médio (km/litro) de um veículo baseado em abastecimentos consecutivos.
-
-    Algoritmo:
-    - Ordena abastecimentos por km crescente
-    - Para cada par consecutivo (i, i+1): consumo = (km[i+1] - km[i]) / litros[i+1]
-    - Média de todos os consumos parciais
-    - Retorna 0 se menos de 2 abastecimentos com dados de km
-    """
+    """Calcula consumo médio (km/litro) de um veículo baseado em abastecimentos consecutivos."""
     usuario_id = current_user["user_id"]
     _get_veiculo_do_usuario(db, veiculo_id, usuario_id)
 
@@ -397,14 +410,13 @@ def consumo_medio(
     total_litros = Decimal("0")
     total_valor = Decimal("0")
     for a in abastecimentos:
-        if a.litros:
-            total_litros += Decimal(str(a.litros))
+        total_litros += _get_litros_efetivos(a)
         total_valor += Decimal(str(a.valor))
 
     # Filtrar abastecimentos com km e litros válidos para cálculo de consumo
     com_km = [
         a for a in abastecimentos
-        if a.km is not None and a.litros is not None and Decimal(str(a.litros)) > 0
+        if a.km is not None and _get_litros_efetivos(a) > 0
     ]
     com_km.sort(key=lambda a: Decimal(str(a.km)))
 
@@ -413,7 +425,7 @@ def consumo_medio(
         consumos = []
         for i in range(len(com_km) - 1):
             km_diff = Decimal(str(com_km[i + 1].km)) - Decimal(str(com_km[i].km))
-            litros_next = Decimal(str(com_km[i + 1].litros))
+            litros_next = _get_litros_efetivos(com_km[i + 1])
             if km_diff > 0 and litros_next > 0:
                 consumos.append(km_diff / litros_next)
         if consumos:
