@@ -355,6 +355,8 @@ export interface AbastecimentoCreate {
   tipo?: string;
   litros_gasolina?: number;
   litros_etanol?: number;
+  banco_id?: number;
+  categoria_id?: number;
 }
 
 // --- Manutenção ---
@@ -373,6 +375,8 @@ export interface ManutencaoCreate {
   servico?: string;
   valor: number;
   km?: number;
+  banco_id?: number;
+  categoria_id?: number;
 }
 
 // --- Orçamento ---

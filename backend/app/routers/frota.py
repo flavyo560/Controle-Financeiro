@@ -182,6 +182,8 @@ def registrar_abastecimento(
         data=data.data,
         pago=True,
         data_pagamento=data.data,
+        banco_id=data.banco_id,
+        categoria_id=data.categoria_id,
     )
     db.add(despesa)
 
@@ -299,6 +301,8 @@ def registrar_manutencao(
         data=data.data,
         pago=True,
         data_pagamento=data.data,
+        banco_id=data.banco_id,
+        categoria_id=data.categoria_id,
     )
     db.add(despesa)
 

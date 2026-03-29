@@ -56,6 +56,8 @@ class AbastecimentoCreate(BaseModel):
     tipo: str | None = Field(default=None, max_length=50)
     litros_gasolina: Decimal | None = Field(default=None, ge=0)
     litros_etanol: Decimal | None = Field(default=None, ge=0)
+    banco_id: int | None = None
+    categoria_id: int | None = None
 
 
 class AbastecimentoUpdate(BaseModel):
@@ -100,6 +102,8 @@ class ManutencaoCreate(BaseModel):
     servico: str | None = None
     valor: Decimal = Field(ge=0)
     km: Decimal | None = Field(default=None, ge=0)
+    banco_id: int | None = None
+    categoria_id: int | None = None
 
 
 class ManutencaoUpdate(BaseModel):

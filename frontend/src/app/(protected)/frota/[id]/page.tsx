@@ -17,6 +17,8 @@ import {
   useDeleteManutencao,
   useConsumoMedio,
 } from "@/hooks/useFrota";
+import { useBancos } from "@/hooks/useBancos";
+import { useCategorias } from "@/hooks/useCategorias";
 import { formatCurrency, formatDate, formatDecimal } from "@/lib/formatters";
 import type { Abastecimento, Manutencao } from "@/types";
 
@@ -35,10 +37,21 @@ export default function VeiculoDetalhePage() {
   const { data: abastecimentos, isLoading: loadingAbast } = useAbastecimentos(veiculoId);
   const { data: manutencoes, isLoading: loadingManut } = useManutencoes(veiculoId);
   const { data: consumoData } = useConsumoMedio(veiculoId);
+  const { data: bancos } = useBancos();
+  const { data: categorias } = useCategorias("despesa");
   const createAbast = useCreateAbastecimento();
   const deleteAbast = useDeleteAbastecimento();
   const createManut = useCreateManutencao();
   const deleteManut = useDeleteManutencao();
+
+  const bancoOptions = [
+    { value: "", label: "Selecione o banco..." },
+    ...(bancos?.map((b) => ({ value: String(b.id), label: b.nome })) ?? []),
+  ];
+  const categoriaOptions = [
+    { value: "", label: "Selecione a categoria..." },
+    ...(categorias?.map((c) => ({ value: String(c.id), label: c.nome })) ?? []),
+  ];
 
   // Abastecimento form
   const [abastModal, setAbastModal] = useState(false);
@@ -50,6 +63,8 @@ export default function VeiculoDetalhePage() {
   const [abastTipo, setAbastTipo] = useState("");
   const [abastLitrosGasolina, setAbastLitrosGasolina] = useState("");
   const [abastLitrosEtanol, setAbastLitrosEtanol] = useState("");
+  const [abastBancoId, setAbastBancoId] = useState("");
+  const [abastCategoriaId, setAbastCategoriaId] = useState("");
 
   // Manutenção form
   const [manutModal, setManutModal] = useState(false);
@@ -57,6 +72,8 @@ export default function VeiculoDetalhePage() {
   const [manutServico, setManutServico] = useState("");
   const [manutValor, setManutValor] = useState("");
   const [manutKm, setManutKm] = useState("");
+  const [manutBancoId, setManutBancoId] = useState("");
+  const [manutCategoriaId, setManutCategoriaId] = useState("");
 
   const handleCreateAbast = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,12 +88,14 @@ export default function VeiculoDetalhePage() {
         tipo: abastTipo || undefined,
         litros_gasolina: abastLitrosGasolina ? Number(abastLitrosGasolina) : undefined,
         litros_etanol: abastLitrosEtanol ? Number(abastLitrosEtanol) : undefined,
+        banco_id: abastBancoId ? Number(abastBancoId) : undefined,
+        categoria_id: abastCategoriaId ? Number(abastCategoriaId) : undefined,
       },
       {
         onSuccess: () => {
           setAbastModal(false);
           setAbastData(""); setAbastLitros(""); setAbastValor(""); setAbastKm(""); setAbastPosto(""); setAbastTipo("");
-          setAbastLitrosGasolina(""); setAbastLitrosEtanol("");
+          setAbastLitrosGasolina(""); setAbastLitrosEtanol(""); setAbastBancoId(""); setAbastCategoriaId("");
         },
       }
     );
@@ -91,11 +110,13 @@ export default function VeiculoDetalhePage() {
         servico: manutServico || undefined,
         valor: Number(manutValor),
         km: manutKm ? Number(manutKm) : undefined,
+        banco_id: manutBancoId ? Number(manutBancoId) : undefined,
+        categoria_id: manutCategoriaId ? Number(manutCategoriaId) : undefined,
       },
       {
         onSuccess: () => {
           setManutModal(false);
-          setManutData(""); setManutServico(""); setManutValor(""); setManutKm("");
+          setManutData(""); setManutServico(""); setManutValor(""); setManutKm(""); setManutBancoId(""); setManutCategoriaId("");
         },
       }
     );
@@ -189,6 +210,8 @@ export default function VeiculoDetalhePage() {
           <Input label="Valor (R$)" type="number" step="0.01" value={abastValor} onChange={(e) => setAbastValor(e.target.value)} required />
           <Input label="Km" type="number" value={abastKm} onChange={(e) => setAbastKm(e.target.value)} />
           <Input label="Posto" value={abastPosto} onChange={(e) => setAbastPosto(e.target.value)} />
+          <Select label="Banco" options={bancoOptions} value={abastBancoId} onChange={(e) => setAbastBancoId(e.target.value)} />
+          <Select label="Categoria" options={categoriaOptions} value={abastCategoriaId} onChange={(e) => setAbastCategoriaId(e.target.value)} />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setAbastModal(false)}>Cancelar</Button>
             <Button type="submit" disabled={createAbast.isPending}>Registrar</Button>
@@ -203,6 +226,8 @@ export default function VeiculoDetalhePage() {
           <Input label="Serviço" value={manutServico} onChange={(e) => setManutServico(e.target.value)} />
           <Input label="Valor (R$)" type="number" step="0.01" value={manutValor} onChange={(e) => setManutValor(e.target.value)} required />
           <Input label="Km" type="number" value={manutKm} onChange={(e) => setManutKm(e.target.value)} />
+          <Select label="Banco" options={bancoOptions} value={manutBancoId} onChange={(e) => setManutBancoId(e.target.value)} />
+          <Select label="Categoria" options={categoriaOptions} value={manutCategoriaId} onChange={(e) => setManutCategoriaId(e.target.value)} />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setManutModal(false)}>Cancelar</Button>
             <Button type="submit" disabled={createManut.isPending}>Registrar</Button>

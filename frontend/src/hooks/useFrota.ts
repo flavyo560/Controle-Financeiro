@@ -101,7 +101,7 @@ export function useDeleteAbastecimento() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ veiculoId, id }: { veiculoId: number; id: number }) => {
-      await api.delete(`/frota/veiculos/${veiculoId}/abastecimentos/${id}`);
+      await api.delete(`/frota/abastecimentos/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["abastecimentos"] });
@@ -143,7 +143,7 @@ export function useDeleteManutencao() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ veiculoId, id }: { veiculoId: number; id: number }) => {
-      await api.delete(`/frota/veiculos/${veiculoId}/manutencoes/${id}`);
+      await api.delete(`/frota/manutencoes/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["manutencoes"] });
