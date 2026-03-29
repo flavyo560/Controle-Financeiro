@@ -111,6 +111,21 @@ export function useDeleteAbastecimento() {
   });
 }
 
+export function useUpdateAbastecimento() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: number } & Record<string, unknown>) => {
+      const { data: res } = await api.put(`/frota/abastecimentos/${id}`, data);
+      return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["abastecimentos"] });
+      toast.success("Abastecimento atualizado com sucesso");
+    },
+    onError: () => toast.error("Erro ao atualizar abastecimento"),
+  });
+}
+
 // --- Manutenções ---
 
 export function useManutencoes(veiculoId: number) {
@@ -150,6 +165,21 @@ export function useDeleteManutencao() {
       toast.success("Manutenção excluída com sucesso");
     },
     onError: () => toast.error("Erro ao excluir manutenção"),
+  });
+}
+
+export function useUpdateManutencao() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: number } & Record<string, unknown>) => {
+      const { data: res } = await api.put(`/frota/manutencoes/${id}`, data);
+      return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["manutencoes"] });
+      toast.success("Manutenção atualizada com sucesso");
+    },
+    onError: () => toast.error("Erro ao atualizar manutenção"),
   });
 }
 
